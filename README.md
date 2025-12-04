@@ -4,7 +4,7 @@
 
 This project was born out of the need for a simple, mobile-first tool for network engineers and enthusiasts to perform quick on-site surveys without expensive, proprietary hardware.
 
-![Screenshot of WiProber App](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_20251204-152908.png)
+![Screenshot of WiProber App](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_0_info.png)
 
 ## Features
 
