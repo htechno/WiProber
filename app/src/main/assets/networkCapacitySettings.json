@@ -1,0 +1,149 @@
+{
+  "networkCapacitySettings": [
+    {
+      "frequencyBand": "TWO",
+      "numberOfSsids": 2,
+      "rtsCtsEnabled": false,
+      "maxAssociatedClientsAmount": 200,
+      "abgRates": [
+        {
+          "rate": "R1",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R2",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R5D5",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R6",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R9",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R11",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R12",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R18",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R24",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R36",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R48",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R54",
+          "state": "MANDATORY"
+        }
+      ],
+      "bssColoring": false,
+      "id": "23b615d4-49c2-42ef-a9ae-64c1adf02441",
+      "status": "CREATED"
+    },
+    {
+      "frequencyBand": "SIX",
+      "numberOfSsids": 2,
+      "rtsCtsEnabled": false,
+      "maxAssociatedClientsAmount": 200,
+      "abgRates": [
+        {
+          "rate": "R6",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R9",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R12",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R18",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R24",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R36",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R48",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R54",
+          "state": "MANDATORY"
+        }
+      ],
+      "bssColoring": false,
+      "id": "20d65550-55ac-4cd3-93bf-0838b96c8c66",
+      "status": "CREATED"
+    },
+    {
+      "frequencyBand": "FIVE",
+      "numberOfSsids": 2,
+      "rtsCtsEnabled": false,
+      "maxAssociatedClientsAmount": 200,
+      "abgRates": [
+        {
+          "rate": "R6",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R9",
+          "state": "DISABLED"
+        },
+        {
+          "rate": "R12",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R18",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R24",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R36",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R48",
+          "state": "MANDATORY"
+        },
+        {
+          "rate": "R54",
+          "state": "MANDATORY"
+        }
+      ],
+      "bssColoring": false,
+      "id": "536c33dc-2f04-450a-93a6-e93b800a8b02",
+      "status": "CREATED"
+    }
+  ]
+}

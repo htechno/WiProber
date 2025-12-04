@@ -1,0 +1,233 @@
+{
+  "attenuationAreaTypes": [
+    {
+      "name": "Retail Shelf",
+      "key": "retail_shelf",
+      "color": "#00FA9A",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 5.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 5.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 5.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "upperEdge": 1.5,
+      "id": "7e932d70-6780-4cca-880d-ea7ec956c9ce",
+      "status": "CREATED"
+    },
+    {
+      "name": "Market Stall",
+      "key": "market_stall",
+      "color": "#B2E041",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 3.5,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 3.5,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 3.5,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "upperEdge": 2.5,
+      "id": "f897d054-3bd3-44d9-847f-933d5bb627ae",
+      "status": "CREATED"
+    },
+    {
+      "name": "Cubicle",
+      "key": "cubicle-h1.5m",
+      "color": "#BEBEBE",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "upperEdge": 1.5,
+      "id": "c6b28711-dd18-4c07-aa73-6c4362172832",
+      "status": "CREATED"
+    },
+    {
+      "name": "Cabling Closet",
+      "key": "cabling",
+      "color": "#FF00FF",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 7.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 7.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 7.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "id": "f702c8ce-df22-41de-80ea-ca5e0afe93d1",
+      "status": "CREATED"
+    },
+    {
+      "name": "Warehouse Rack",
+      "key": "warehouse_rack",
+      "color": "#404040",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 18.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 18.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 18.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "id": "b124873c-e18a-41f7-aec5-6cdceb926ee3",
+      "status": "CREATED"
+    },
+    {
+      "name": "Elevator",
+      "key": "elevator",
+      "color": "#8E8E8E",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 17.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 17.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 17.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "id": "65555c71-043b-44c9-91aa-c09da6484d67",
+      "status": "CREATED"
+    },
+    {
+      "name": "Human crowd",
+      "key": "human_crowd",
+      "color": "#F79F81",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "upperEdge": 1.75,
+      "id": "7bf4421b-632c-4d99-bd18-539e644c93ee",
+      "status": "CREATED"
+    },
+    {
+      "name": "Restaurant Seating",
+      "key": "restaurant_seating",
+      "color": "#948A54",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 3.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "lowerEdge": 0.0,
+      "upperEdge": 1.5,
+      "id": "12f4db42-3afe-4973-8398-e86447ac9534",
+      "status": "CREATED"
+    }
+  ]
+}

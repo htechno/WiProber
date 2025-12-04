@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <!-- 1. Место для отображения карты. Растягиваем на весь экран. -->
+    <com.github.chrisbanes.photoview.PhotoView
+        android:id="@+id/mapImageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#E0E0E0"
+        android:contentDescription="@string/map_image_description"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <com.example.wiprober.PointsOverlayView
+        android:id="@+id/pointsOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@+id/mapImageView"
+        app:layout_constraintEnd_toEndOf="@+id/mapImageView"
+        app:layout_constraintStart_toStartOf="@+id/mapImageView"
+        app:layout_constraintTop_toTopOf="@+id/mapImageView" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/selectMapButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="@string/select_map_button_text" />
+
+        <ImageButton
+            android:id="@+id/undoButton"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:src="@drawable/ic_undo"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+        <Button
+            android:id="@+id/saveReportButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:enabled="false"
+            android:text="@string/save_report_button_text" />
+
+    </LinearLayout>
+
+    <!-- Индикатор загрузки (по умолчанию невидимый) -->
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/scanProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorColor="@color/design_default_color_primary"
+        app:indicatorSize="64dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:trackThickness="6dp"
+        tools:visibility="visible" />
+
+    <!-- Кнопка добавления заметки (слева вверху) -->
+    <ImageButton
+        android:id="@+id/addNoteButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Добавить заметку"
+        android:src="@drawable/ic_add_note"
+        android:visibility="invisible"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible" />
+
+    <!-- Кнопка масштаба (рядом с "Заметкой") -->
+    <ImageButton
+        android:id="@+id/scaleButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="8dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Задать масштаб"
+        android:src="@drawable/ic_scale"
+        android:visibility="invisible"
+        app:layout_constraintStart_toEndOf="@id/addNoteButton"
+        app:layout_constraintTop_toTopOf="@+id/addNoteButton"
+        tools:visibility="visible" />
+
+    <!-- Кнопка "О программе" (справа вверху) -->
+    <ImageButton
+        android:id="@+id/aboutButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="О программе"
+        android:src="@drawable/ic_info"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

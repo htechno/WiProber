@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">WiProber</string>
+    <string name="map_image_description">Карта помещения</string>
+    <string name="select_map_button_text">Выбрать карту</string>
+    <string name="save_report_button_text">Сохранить отчет</string>
+</resources>

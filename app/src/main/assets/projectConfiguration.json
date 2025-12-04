@@ -1,0 +1,705 @@
+{
+  "projectConfiguration": {
+    "enabledGroupingLogics": [
+      "Routerboard.com",
+      "Xirrus",
+      "Arista",
+      "Aruba",
+      "Adtran",
+      "ASUS",
+      "Alcatel Lucent",
+      "Microsoft",
+      "Ubiquiti",
+      "Meru",
+      "LANCOM",
+      "Mojo",
+      "D-Link",
+      "generic-grouping-logic",
+      "Ruckus",
+      "TP-Link",
+      "Extreme",
+      "Sophos",
+      "ZyXEL",
+      "Cisco",
+      "Mist",
+      "Samsung",
+      "Huawei",
+      "Fortinet",
+      "Nokia Siemens",
+      "Cisco Meraki"
+    ],
+    "displayOptions": [
+      {
+        "key": "throughput_mode_selection",
+        "value": ""
+      },
+      {
+        "key": "bluetooth_coverage_minimum_signal_strength",
+        "value": ""
+      },
+      {
+        "key": "layer.AttenuationAreas",
+        "value": "true"
+      },
+      {
+        "key": "BluetoothCoverage.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "NumberOfAccessPoints.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "CapacityDistribution.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "PingRoundTripTime.level_values",
+        "value": ""
+      },
+      {
+        "key": "DiffSignalStrength.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "layer.SurveysSecondary",
+        "value": "true"
+      },
+      {
+        "key": "DataRate.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "SpectrumUtilization.level_values",
+        "value": ""
+      },
+      {
+        "key": "SpectrumUtilization.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "SpectrumChannelPower.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "channel_bandwidth_minimum_signal_strength",
+        "value": ""
+      },
+      {
+        "key": "DataRate.level_values",
+        "value": ""
+      },
+      {
+        "key": "SpectrumChannelPower.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "Interference.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "SignalToNoise.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "channel_overlap_association_limit",
+        "value": ""
+      },
+      {
+        "key": "NumberOfAccessPoints.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "SecondarySignalStrength.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "layer.AccessPoints",
+        "value": "true"
+      },
+      {
+        "key": "visualization_opacity",
+        "value": ""
+      },
+      {
+        "key": "ThroughputJitter.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "layer.AccessPointBluetoothRadios",
+        "value": "true"
+      },
+      {
+        "key": "BluetoothCoverage.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "layer.AccessPointAntennas",
+        "value": "true"
+      },
+      {
+        "key": "spectrum_util_channel_value",
+        "value": ""
+      },
+      {
+        "key": "ThroughputJitter.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "Interference.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "NumberOfAccessPoints.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "TertiarySignalStrength.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.color_cutout_lower_edge",
+        "value": "-85.0"
+      },
+      {
+        "key": "SpectrumChannelPower.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "SpectrumChannelPower.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "NetworkHealth.level_values",
+        "value": ""
+      },
+      {
+        "key": "network_health_pass_condition",
+        "value": ""
+      },
+      {
+        "key": "PingPacketLoss.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "PingRoundTripTime.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "noise_at_channel",
+        "value": ""
+      },
+      {
+        "key": "NetworkHealth.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "TertiarySignalStrength.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "TertiarySignalStrength.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "layer.ExclusionAreas",
+        "value": "true"
+      },
+      {
+        "key": "tooltips_visible",
+        "value": "true"
+      },
+      {
+        "key": "CapacityDistribution.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "DiffSignalStrength.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "Interference.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "SecondarySignalStrength.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "PingPacketLoss.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "ThroughputJitter.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "layer.AccessPointRadios",
+        "value": "true"
+      },
+      {
+        "key": "association_mode",
+        "value": "STRONGEST_SIGNAL"
+      },
+      {
+        "key": "ThroughputJitter.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "layer.SurveyBookmarks",
+        "value": "true"
+      },
+      {
+        "key": "2.4GHz_band_selected",
+        "value": "false"
+      },
+      {
+        "key": "CapacityDistribution.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "layer.SurveyBookmarksLabels",
+        "value": "true"
+      },
+      {
+        "key": "adapter_selection",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.requirement_greyout",
+        "value": "true"
+      },
+      {
+        "key": "SignalToNoise.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "UniformApplMediumUsage.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "channel_overlap_minimum_signal_strength",
+        "value": ""
+      },
+      {
+        "key": "channel_overlap_channel",
+        "value": ""
+      },
+      {
+        "key": "DiffSignalStrength.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "AssociatedAccessPoint.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "spectrum_power_channel_value",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.legend_granularity",
+        "value": "5.0"
+      },
+      {
+        "key": "PingPacketLoss.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "bluetooth_coverage_minimum_number_of_beacons",
+        "value": ""
+      },
+      {
+        "key": "noise_type_selection",
+        "value": ""
+      },
+      {
+        "key": "NetworkIssues.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "SecondarySignalStrength.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "spectrum_util_channel_option",
+        "value": ""
+      },
+      {
+        "key": "MaxThroughput.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "TertiarySignalStrength.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "ChannelOverlap.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "layer.HoleInFloors",
+        "value": "true"
+      },
+      {
+        "key": "channel_overlap_mode",
+        "value": ""
+      },
+      {
+        "key": "layer.AttenuationAreaLabels",
+        "value": "true"
+      },
+      {
+        "key": "channel_view_mode",
+        "value": ""
+      },
+      {
+        "key": "BluetoothCoverage.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "ap_distances_visible",
+        "value": "false"
+      },
+      {
+        "key": "ChannelOverlap.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "CapacityDistribution.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "BluetoothCoverage.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "CapacityDistribution.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "ThroughputJitter.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "MaximumChannelBandwidth.level_values",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.contours_enabled",
+        "value": "true"
+      },
+      {
+        "key": "noise_options_selection",
+        "value": ""
+      },
+      {
+        "key": "TertiarySignalStrength.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "layer.AccessPointWideChannels",
+        "value": "true"
+      },
+      {
+        "key": "noise_floor_5GHz_selection",
+        "value": ""
+      },
+      {
+        "key": "InterfererHeatmapType.level_values",
+        "value": ""
+      },
+      {
+        "key": "PingPacketLoss.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "DiffSignalStrength.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "layer.CapacityAreaLabels",
+        "value": "true"
+      },
+      {
+        "key": "ChannelColoring.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "ChannelColoring.level_values",
+        "value": ""
+      },
+      {
+        "key": "InterfererHeatmapType.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "NumberOfAccessPoints.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "layer.Walls",
+        "value": "true"
+      },
+      {
+        "key": "NumberOfAccessPoints.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "NumberOfAccessPoints.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "layer.CapacityAreas",
+        "value": "true"
+      },
+      {
+        "key": "ChannelOverlap.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.color_cutout_upper_edge",
+        "value": "Infinity"
+      },
+      {
+        "key": "SignalToNoise.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "ThroughputJitter.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "UniformApplMediumUsage.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "layer.FloorAlignmentPoints",
+        "value": "true"
+      },
+      {
+        "key": "layer.SurveysPrimary",
+        "value": "true"
+      },
+      {
+        "key": "SignalStrength.color_lower_range",
+        "value": "-90.0"
+      },
+      {
+        "key": "CapacityHealth.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "SignalToNoise.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "UniformApplMediumUsage.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "data_rate_selection",
+        "value": ""
+      },
+      {
+        "key": "MaximumChannelBandwidth.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "speed_accuracy",
+        "value": ""
+      },
+      {
+        "key": "layer.MyAccessPoints",
+        "value": "true"
+      },
+      {
+        "key": "band_selectedSIX",
+        "value": "false"
+      },
+      {
+        "key": "CapacityHealth.level_values",
+        "value": ""
+      },
+      {
+        "key": "SecondarySignalStrength.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "ChannelOverlap.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "CapacityDistribution.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "MaxThroughput.level_values",
+        "value": ""
+      },
+      {
+        "key": "layer.Notes",
+        "value": "true"
+      },
+      {
+        "key": "5GHz_band_selected",
+        "value": "true"
+      },
+      {
+        "key": "num_aps_minimum_signal_strength",
+        "value": ""
+      },
+      {
+        "key": "spectrum_power_channel_option",
+        "value": ""
+      },
+      {
+        "key": "SignalToNoise.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "Interference.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "nearest_floor_aps_visible",
+        "value": "false"
+      },
+      {
+        "key": "ChannelOverlap.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "SignalToNoise.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "UniformApplMediumUsage.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "BluetoothCoverage.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.color_upper_range",
+        "value": "-30.0"
+      },
+      {
+        "key": "ChannelOverlap.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "DiffSignalStrength.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "SignalStrength.adjustable_legend_color_range",
+        "value": "false"
+      },
+      {
+        "key": "TertiarySignalStrength.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "SecondarySignalStrength.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "noise_floor_6GHz_selection",
+        "value": ""
+      },
+      {
+        "key": "SpectrumChannelPower.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "UniformApplMediumUsage.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "legend_visible",
+        "value": "true"
+      },
+      {
+        "key": "PingPacketLoss.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "Interference.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "signal_prediction",
+        "value": ""
+      },
+      {
+        "key": "layer.NoteLabels",
+        "value": "true"
+      },
+      {
+        "key": "UniformApplMediumUsage.color_cutout_upper_edge",
+        "value": ""
+      },
+      {
+        "key": "Interference.legend_granularity",
+        "value": ""
+      },
+      {
+        "key": "AssociatedAccessPoint.level_values",
+        "value": ""
+      },
+      {
+        "key": "SecondarySignalStrength.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "BluetoothCoverage.color_lower_range",
+        "value": ""
+      },
+      {
+        "key": "view_as_mobile_device_selected",
+        "value": "false"
+      },
+      {
+        "key": "layer.AccessPointNames",
+        "value": "false"
+      },
+      {
+        "key": "layer.Interferers",
+        "value": "true"
+      },
+      {
+        "key": "DiffSignalStrength.color_cutout_lower_edge",
+        "value": ""
+      },
+      {
+        "key": "NetworkIssues.level_values",
+        "value": ""
+      },
+      {
+        "key": "SpectrumChannelPower.color_upper_range",
+        "value": ""
+      },
+      {
+        "key": "PingPacketLoss.color_scheme",
+        "value": ""
+      },
+      {
+        "key": "layer.Surveys",
+        "value": "true"
+      },
+      {
+        "key": "noise_floor_2_4GHz_selection",
+        "value": ""
+      }
+    ],
+    "favoriteSsids": [],
+    "id": "ac617491-9beb-4f3a-b600-f0037669c1a9",
+    "status": "CREATED"
+  }
+}

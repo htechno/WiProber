@@ -1,0 +1,247 @@
+{
+  "floorTypes": [
+    {
+      "key": "FloorTypes.OfficeUS",
+      "name": "Office (US)",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 30.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 30.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 30.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": true,
+      "id": "109beadb-dc17-44de-b716-d51bfa33bc84",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.HardlyAny",
+      "name": "Hardly Any",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 10.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 10.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 10.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "5b7ec093-36d4-471f-b970-4b8441bdf7fb",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.Hospital",
+      "name": "Hospital",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 36.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 36.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 36.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "e11c981b-7230-4aa3-83b9-b85e2a2b7dac",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.HeavyFloor",
+      "name": "Heavy Floor",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 50.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 50.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 50.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "8ea9f62a-c356-40ff-9035-0dc901cccc0d",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.ThinFloor",
+      "name": "Thin Floor",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 20.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 20.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 20.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "fac40e9d-7e4c-49f7-9362-735fbd98d88e",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.Hotel",
+      "name": "Hotel",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 36.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 36.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 36.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "f72c46b9-f63a-4e52-87a8-a017060129da",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.Basement",
+      "name": "Basement",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 40.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 40.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 40.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "5b33f2a2-8419-459a-98e4-bf8f05aac638",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.OfficeEU",
+      "name": "Office (EU)",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 40.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 40.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 40.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "32be0080-3b55-4898-be87-a59e235d246a",
+      "status": "CREATED"
+    },
+    {
+      "key": "FloorTypes.VeryHeavyFloor",
+      "name": "Very Heavy Floor",
+      "propagationProperties": [
+        {
+          "band": "SIX",
+          "attenuationFactor": 60.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "FIVE",
+          "attenuationFactor": 60.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        },
+        {
+          "band": "TWO",
+          "attenuationFactor": 60.0,
+          "reflectionCoefficient": 0.5,
+          "diffractionCoefficient": 11.0
+        }
+      ],
+      "isDefault": false,
+      "id": "4175f29f-de1f-470b-832c-9b527b9c07e2",
+      "status": "CREATED"
+    }
+  ]
+}

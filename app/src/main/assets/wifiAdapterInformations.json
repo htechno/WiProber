@@ -1,0 +1,15 @@
+{
+  "wifiAdapterInformations": [
+    {
+      "mac": "40:a5:ef:40:1c:e2",
+      "name": "Realtek 8812AU Wireless LAN 802.11ac USB NIC",
+      "driverDate": "7-29-2019",
+      "driverFiles": "rtwlanu.sys",
+      "driverVersion": "1030.38.712.2019",
+      "vendor": "ndis",
+      "revision": "usb\\vid_0bda\u0026pid_8812\u0026rev_0000",
+      "id": "3fb11fa8-4a44-4be9-b588-15d767bd768a",
+      "status": "CREATED"
+    }
+  ]
+}
