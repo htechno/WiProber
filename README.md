@@ -9,6 +9,7 @@ This project was born out of the need for a simple, mobile-first tool for networ
 ![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_2_note.png)
 ![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_3_scale.png)
 ![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_4_scan.png)
+![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_5_Signal_Strength.png)
 
 ## Features
 
