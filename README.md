@@ -38,7 +38,7 @@ This is a non-commercial, open-source project with bazı limitations you should 
 *   An Android device with Android 9 (Pie, API 28) or higher.
 
 ### Building and Running
-1.  Clone the repository: `git clone https://github.com/USERNAME/WiProber.git`
+1.  Clone the repository: `git clone https://github.com/htechno/WiProber.git`
 2.  Open the project in Android Studio.
 3.  Let Gradle sync and download all dependencies.
 4.  Build and run the application on your device.
