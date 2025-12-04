@@ -66,7 +66,7 @@ As I maintain this project in my spare time, my ability to resolve issues single
 I'm a wireless engineer, just like many of you, not a full-time developer. Let's build this tool together!
 
 ## License
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](https://github.com/htechno/WiProber/blob/main/LICENSE) file for details.
 
 ---
 *Disclaimer: Ekahau Pro™ is a trademark of Ekahau. This project is not affiliated with, endorsed by, or sponsored by Ekahau.*
