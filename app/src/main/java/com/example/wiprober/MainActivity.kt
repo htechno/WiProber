@@ -282,17 +282,60 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showFirstTimeWarningIfNeeded() {
+        // Мы добавляем версию ключа (например _v2) или оставляем как есть, если хотим затронуть только новых пользователей.
+        // Для охвата всех лучше использовать новый ключ или считать, что если человек сканирует - он увидит предупреждение при лимите.
         val prefs = getSharedPreferences("WiProberPrefs", MODE_PRIVATE)
-        if (!prefs.getBoolean("has_shown_disconnect_warning", false)) {
+        if (!prefs.getBoolean("has_shown_disconnect_warning_v2", false)) {
+            val message = "1. Приложение кратковременно отключает Wi-Fi перед сканированием для точности.\n\n" +
+                    "2. Android ограничивает частоту сканирования (4 раза за 2 мин).\n" +
+                    "Для быстрой работы без задержек рекомендуем отключить «Wi-Fi scan throttling» в настройках разработчика."
+
             MaterialAlertDialogBuilder(this)
                 .setTitle("Важная информация")
-                .setMessage("Для обеспечения максимальной точности, это приложение будет кратковременно отключаться от Wi-Fi сети перед каждым сканированием. Ваше интернет-соединение будет восстановлено автоматически.")
+                .setMessage(message)
                 .setPositiveButton("Понятно") { _, _ ->
-                    prefs.edit().putBoolean("has_shown_disconnect_warning", true).apply()
+                    prefs.edit().putBoolean("has_shown_disconnect_warning_v2", true).apply()
+                }
+                .setNeutralButton("Настройки Dev") { _, _ ->
+                    openDeveloperSettings()
+                    // Не сохраняем флаг, чтобы показать еще раз, если пользователь вернулся
+                    // или сохраняем - на ваше усмотрение. Лучше сохранить:
+                    prefs.edit().putBoolean("has_shown_disconnect_warning_v2", true).apply()
                 }
                 .setCancelable(false)
                 .show()
         }
+    }
+
+    private fun openDeveloperSettings() {
+        try {
+            val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
+            startActivity(intent)
+        } catch (e: Exception) {
+            // Если не удалось открыть меню разработчика, открываем общие настройки
+            try {
+                startActivity(Intent(Settings.ACTION_SETTINGS))
+                Toast.makeText(this, "Найдите раздел 'Для разработчиков'", Toast.LENGTH_LONG).show()
+            } catch (e2: Exception) {
+                Toast.makeText(this, "Не удалось открыть настройки", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    private fun showThrottlingLimitDialog(secondsLeft: Int) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Лимит частоты сканирования")
+            .setIcon(R.drawable.ic_info) // Убедитесь, что эта иконка есть, или используйте системную android.R.drawable.ic_dialog_info
+            .setMessage("Операционная система ограничивает частоту поиска сетей.\n\n" +
+                    "Ожидание разблокировки: $secondsLeft сек.\n\n" +
+                    "Чтобы убрать это ограничение навсегда, отключите опцию «Wi-Fi scan throttling» (Ограничение поиска сетей) в настройках разработчика.")
+            .setPositiveButton("Открыть настройки") { _, _ ->
+                openDeveloperSettings()
+            }
+            .setNegativeButton("Ждать") { dialog, _ ->
+                dialog.dismiss()
+            }
+            .show()
     }
 
     private fun showAboutDialog() {
@@ -359,22 +402,60 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /**
+     * Проверяет, включено ли системное ограничение частоты сканирования (Throttling).
+     *
+     * На Android 11+ (API 30) это делается через официальный API WifiManager.
+     * На старых версиях пытаемся прочитать глобальную настройку через Settings.
+     */
+    private fun isSystemThrottlingEnabled(): Boolean {
+        // Получаем WifiManager для проверки состояния
+        val wifiManager = applicationContext.getSystemService(android.content.Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
+        // Если не удалось получить менеджер, считаем что ограничение есть для безопасности
+            ?: return true
+
+        // ВАРИАНТ 1: Android 11 (R) и новее - Официальный метод
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return wifiManager.isScanThrottleEnabled
+        }
+
+        // ВАРИАНТ 2: Старые версии Android (до 11) - Хак через Settings
+        return try {
+            val setting = Settings.Global.getInt(
+                contentResolver,
+                "wifi_scan_throttle_enabled"
+            )
+            // 1 = Enabled (Throttling ON), 0 = Disabled (Throttling OFF)
+            setting == 1
+        } catch (e: Exception) {
+            Log.w("ThrottlingCheck", "Не удалось прочитать настройку throttling старым методом", e)
+            true // По умолчанию считаем, что включено
+        }
+    }
+
     private fun canScan(): Boolean {
+        // ШАГ 1: Проверяем настройки разработчика (адаптивно для разных версий Android)
+        if (!isSystemThrottlingEnabled()) {
+            // Троттлинг выключен в системе -> разрешаем сканирование безлимитно.
+            return true
+        }
+
+        // ШАГ 2: Стандартная логика защиты для обычных пользователей (Троттлинг в системе ВКЛЮЧЕН или неизвестен)
         val twoMinutesInMillis = 2 * 60 * 1000
         val currentTime = System.currentTimeMillis()
         viewModel.recentScanTimestamps.removeAll { timestamp -> currentTime - timestamp > twoMinutesInMillis }
+
         if (viewModel.recentScanTimestamps.size < 4) {
             return true
         } else {
             val oldestRecentScan = viewModel.recentScanTimestamps.minOrNull() ?: currentTime
             val timeToWait = (oldestRecentScan + twoMinutesInMillis) - currentTime
             val secondsLeft = (timeToWait / 1000).toInt() + 1
+
+            // Если пользователь пытается нажать слишком часто, показываем диалог (не toast),
+            // объясняющий как это исправить.
             if (currentTime - lastThrottlingToastTime > 5000) {
-                Toast.makeText(
-                    this,
-                    "Лимит сканирования. Подождите: $secondsLeft сек",
-                    Toast.LENGTH_SHORT
-                ).show()
+                showThrottlingLimitDialog(secondsLeft)
                 lastThrottlingToastTime = currentTime
             }
             return false

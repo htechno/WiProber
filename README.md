@@ -23,9 +23,17 @@ This project was born out of the need for a simple, mobile-first tool for networ
 
 ## Limitations & Known Issues
 
-This is a non-commercial, open-source project with bazı limitations you should be aware of:
+This is a non-commercial, open-source project. Please be aware of the following system limitations:
 
-*   **Wi-Fi Scan Throttling:** Due to Android OS restrictions (Android 9+), the app is limited to **4 scans per 2-minute period**. If you reach this limit, the app will inform you to wait. This is a system-level limitation and cannot be bypassed.
+*   **Wi-Fi Scan Throttling:**
+    *   **The Issue:** By default, Android limits third-party apps to **4 scans per 2-minute period**.
+    *   **The Solution:** WiProber automatically checks if this system limitation is active.
+        *   **If Throttling is ON:** The app enforces a countdown timer to prevent scan failures, asking you to wait.
+        *   **If Throttling is OFF:** The app allows you to scan as frequently as you like.
+    *   **Device Compatibility:**
+        *   **Android 11 (API 30) and newer:** The app accurately detects the throttling state via the official API.
+        *   **Android 10 and older:** The app attempts to read the global settings. If it cannot verify that throttling is disabled (due to vendor restrictions), it defaults to "Safe Mode" and enforces the timer.
+    *   **How to Disable Throttling:** To scan without delays, enable **Developer Options** on your device, find **"Wi-Fi scan throttling"** (under Networking), and turn it **OFF**.
 *   **No "My Networks" Detection:** The app currently does not automatically identify or flag your own networks ("My Networks"). This must be done manually within Ekahau Pro after import.
 *   **No AP Merging:** WiProber creates a new, separate access point (`accessPoints.json`) for every unique BSSID found. It does not attempt to group multiple radios (e.g., 2.4-GHz и 5-GHz radios) under a single physical access point device. This grouping should be performed manually in Ekahau.
 *   **No Auto-Placing:** The app does not calculate or predict the physical location of access points on the map.
