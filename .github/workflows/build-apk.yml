@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    tags:
+      - 'v*'  # Trigger on version tags like v1.0.0, v2.1.3, etc.
 
 jobs:
   build:
@@ -39,3 +41,36 @@ jobs:
           echo "✅ APK successfully built!"
           ls -lh app/build/outputs/apk/debug/
           echo "APK size: $(du -h app/build/outputs/apk/debug/app-debug.apk | cut -f1)"
+
+      - name: Prepare APK for release
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          # Extract version from tag (e.g., v1.0.0 -> 1.0.0)
+          VERSION=${GITHUB_REF#refs/tags/v}
+          # Copy and rename APK with version
+          cp app/build/outputs/apk/debug/app-debug.apk WiProber-v${VERSION}-universal.apk
+          echo "APK renamed to: WiProber-v${VERSION}-universal.apk"
+          ls -lh WiProber-v${VERSION}-universal.apk
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: WiProber-v*.apk
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          body: |
+            ## 📱 WiProber Universal APK
+
+            Универсальный APK для всех Android устройств (arm64, arm32, x86, x86_64).
+
+            ### Установка:
+            1. Скачайте APK файл из Assets ниже
+            2. Установите на Android устройство (требуется Android 9.0+)
+            3. Разрешите установку из неизвестных источников, если потребуется
+
+            ### Что изменилось:
+            См. автоматически сгенерированный changelog ниже.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
