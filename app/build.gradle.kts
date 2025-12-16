@@ -38,6 +38,13 @@ android {
         viewBinding = true
     }
 
+    // Universal APK configuration - includes all ABIs
+    splits {
+        abi {
+            isEnable = false // Disable split APKs to create universal APK
+        }
+    }
+
 }
 
 dependencies {
