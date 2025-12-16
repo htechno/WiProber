@@ -7,13 +7,13 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- 1. Место для отображения карты. Растягиваем на весь экран. -->
+    <!-- 1. Место для отображения карты -->
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/mapImageView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#E0E0E0"
-        android:contentDescription="@string/map_image_description"
+        android:contentDescription="Map"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -29,7 +29,9 @@
         app:layout_constraintStart_toStartOf="@+id/mapImageView"
         app:layout_constraintTop_toTopOf="@+id/mapImageView" />
 
+    <!-- НИЖНЯЯ ПАНЕЛЬ -->
     <LinearLayout
+        android:id="@+id/bottomPanel"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
@@ -46,7 +48,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="@string/select_map_button_text" />
+            android:text="Select Map" />
 
         <ImageButton
             android:id="@+id/undoButton"
@@ -64,11 +66,10 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:enabled="false"
-            android:text="@string/save_report_button_text" />
+            android:text="Save Report" />
 
     </LinearLayout>
 
-    <!-- Индикатор загрузки (по умолчанию невидимый) -->
     <com.google.android.material.progressindicator.CircularProgressIndicator
         android:id="@+id/scanProgressBar"
         android:layout_width="wrap_content"
@@ -81,39 +82,77 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:trackThickness="6dp"
-        tools:visibility="visible" />
+        app:trackThickness="6dp" />
 
-    <!-- Кнопка добавления заметки (слева вверху) -->
-    <ImageButton
-        android:id="@+id/addNoteButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+    <!-- ВЕРХНЯЯ ЛЕВАЯ ПАНЕЛЬ ИНСТРУМЕНТОВ -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Добавить заметку"
-        android:src="@drawable/ic_add_note"
-        android:visibility="invisible"
+        android:orientation="vertical"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Кнопка заметки -->
+        <ImageButton
+            android:id="@+id/addNoteButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_add_note"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+        <!-- Кнопка масштаба -->
+        <ImageButton
+            android:id="@+id/scaleButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_scale"
+            android:visibility="invisible"
+            tools:visibility="visible" />
+
+        <!-- КНОПКА ПЕРЕКЛЮЧЕНИЯ РЕЖИМА (НОВАЯ) -->
+        <!-- По умолчанию иконка для Stop-and-Go (Мишень) -->
+        <!-- При нажатии меняется на Continuous (Человечек/Следы) -->
+        <!-- Используем системные иконки или свои -->
+        <ImageButton
+            android:id="@+id/modeSwitchButton"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_myplaces"
+            android:visibility="invisible"
+            android:contentDescription="Switch Scan Mode"
+            tools:visibility="visible" />
+        <!-- ic_menu_myplaces похожа на точку на карте, подойдет для начала -->
+
+    </LinearLayout>
+
+    <!-- КНОПКА СТОП (Для continuous режима) -->
+    <!-- Показывается только когда идет запись трека -->
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
+        android:id="@+id/stopTrackingButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="24dp"
+        android:backgroundTint="#D32F2F"
+        android:text="STOP TRACKING"
+        android:textColor="@android:color/white"
+        android:visibility="gone"
+        app:icon="@android:drawable/ic_media_pause"
+        app:iconTint="@android:color/white"
+        app:layout_constraintBottom_toTopOf="@+id/bottomPanel"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
-    <!-- Кнопка масштаба (рядом с "Заметкой") -->
-    <ImageButton
-        android:id="@+id/scaleButton"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="8dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Задать масштаб"
-        android:src="@drawable/ic_scale"
-        android:visibility="invisible"
-        app:layout_constraintStart_toEndOf="@id/addNoteButton"
-        app:layout_constraintTop_toTopOf="@+id/addNoteButton"
-        tools:visibility="visible" />
 
-    <!-- Кнопка "О программе" (справа вверху) -->
+    <!-- Кнопка О программе (справа вверху) -->
     <ImageButton
         android:id="@+id/aboutButton"
         android:layout_width="48dp"
@@ -121,7 +160,6 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="О программе"
         android:src="@drawable/ic_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

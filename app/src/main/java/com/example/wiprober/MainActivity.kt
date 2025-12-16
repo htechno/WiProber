@@ -3,6 +3,7 @@ package com.example.wiprober
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.graphics.ImageDecoder
 import android.net.Uri
 import android.os.Build
@@ -28,6 +29,7 @@ import coil.load
 import com.example.wiprober.databinding.ActivityMainBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -49,7 +51,7 @@ class MainActivity : AppCompatActivity() {
     private var activeNoteDialogPreview: ImageView? = null
 
     // Enum для истории действий
-    enum class LastAction { SCAN, NOTE }
+    enum class LastAction { SCAN, NOTE, SCAN_SESSION }
 
     //<editor-fold desc="Activity Launchers">
     private val selectImageLauncher =
@@ -168,9 +170,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setupObservers() {
+        // Отрисовка Stop-and-Go точек
         viewModel.scanPoints.observe(this) { points ->
             binding.pointsOverlay.setScanPoints(points.map { Pair(it.x, it.y) })
         }
+
+        // Отрисовка Continuous треков (завершенных)
+        viewModel.continuousScanSessions.observe(this) { sessions ->
+            binding.pointsOverlay.setCompletedTracks(sessions)
+            updateButtonStates()
+        }
+
+        // Отрисовка текущего активного пути (когда идем)
+        viewModel.currentTrackPoints.observe(this) { points ->
+            binding.pointsOverlay.setActiveTrack(points)
+        }
+
         viewModel.notesList.observe(this) { notes ->
             binding.pointsOverlay.setNoteMarkers(notes.map { android.graphics.PointF(it.x, it.y) })
         }
@@ -181,26 +196,55 @@ class MainActivity : AppCompatActivity() {
                 binding.pointsOverlay.clearAll()
             }
         }
+
+        // UI переключение режима
+        viewModel.isContinuousMode.observe(this) { isContinuous ->
+            if (isContinuous) {
+                // Иконка "Путь / Маршрут"
+                binding.modeSwitchButton.setImageResource(android.R.drawable.ic_menu_directions)
+                binding.modeSwitchButton.setColorFilter(Color.BLUE)
+                Toast.makeText(this, "Режим: НЕПРЕРЫВНО (Continuous)", Toast.LENGTH_SHORT).show()
+            } else {
+                // Иконка "Точка"
+                binding.modeSwitchButton.setImageResource(android.R.drawable.ic_menu_myplaces)
+                binding.modeSwitchButton.setColorFilter(Color.BLACK)
+                Toast.makeText(this, "Режим: ТОЧКА (Stop-and-Go)", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Кнопка СТОП (видна только при записи трека)
+        viewModel.isTracking.observe(this) { isTracking ->
+            binding.stopTrackingButton.visibility = if (isTracking) View.VISIBLE else View.GONE
+            // Блокируем смену режима во время записи
+            binding.modeSwitchButton.isEnabled = !isTracking
+            // Блокируем сохранение во время записи
+            binding.saveReportButton.isEnabled = !isTracking && (
+                    (viewModel.actionsHistory.value?.isNotEmpty() == true)
+                    )
+        }
+
         viewModel.isInCalibrationMode.observe(this) { isInMode ->
             if (isInMode) {
                 Toast.makeText(this, "Режим калибровки: укажите первую точку", Toast.LENGTH_LONG)
                     .show()
             }
         }
-        viewModel.lastActionType.observe(this) { actionType ->
-            actionType?.let { // Выполняем, только если тип не null
-                val message = when (it) {
-                    LastAction.SCAN -> "Последний скан удален"
-                    LastAction.NOTE -> "Последняя заметка удалена"
-                }
-                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
-                viewModel.lastActionType.value = null // Сбрасываем, чтобы Toast не показался снова
-            }
-        }
         viewModel.isInNoteCreationMode.observe(this) { isInMode ->
             if (isInMode) {
                 Toast.makeText(this, "Режим заметки: укажите место на карте", Toast.LENGTH_LONG)
                     .show()
+            }
+        }
+
+        viewModel.lastActionType.observe(this) { actionType ->
+            actionType?.let {
+                val message = when (it) {
+                    LastAction.SCAN -> "Последний скан удален"
+                    LastAction.NOTE -> "Последняя заметка удалена"
+                    LastAction.SCAN_SESSION -> "Последний трек удален"
+                }
+                Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                viewModel.lastActionType.value = null
             }
         }
     }
@@ -213,11 +257,16 @@ class MainActivity : AppCompatActivity() {
         binding.addNoteButton.setOnClickListener { viewModel.isInNoteCreationMode.value = true }
 
         binding.undoButton.setOnClickListener {
-            viewModel.undoLastAction() // Просто вызываем метод ViewModel
+            viewModel.undoLastAction()
         }
 
         binding.saveReportButton.setOnClickListener {
-            if (viewModel.actionsHistory.value.isNullOrEmpty() || viewModel.currentMapInfo.value == null) {
+            // Проверка: есть ли данные любого типа
+            val hasData = (viewModel.scanPoints.value?.isNotEmpty() == true) ||
+                    (viewModel.continuousScanSessions.value?.isNotEmpty() == true) ||
+                    (viewModel.notesList.value?.isNotEmpty() == true)
+
+            if (!hasData || viewModel.currentMapInfo.value == null) {
                 Toast.makeText(
                     this,
                     "Нет данных для сохранения или карта не загружена",
@@ -227,6 +276,30 @@ class MainActivity : AppCompatActivity() {
             }
             val fileName = "report_${System.currentTimeMillis()}.esx"
             saveEkahauFileLauncher.launch(fileName)
+        }
+
+        // ПЕРЕКЛЮЧЕНИЕ РЕЖИМА
+        binding.modeSwitchButton.setOnClickListener {
+            val currentMode = viewModel.isContinuousMode.value ?: false
+
+            if (!currentMode) { // Хотим включить Continuous
+                // ПРОВЕРКА ТРОТТЛИНГА!
+                if (isSystemThrottlingEnabled()) {
+                    showThrottlingBlockDialog() // Не даем включить, пока есть троттлинг
+                } else {
+                    viewModel.isContinuousMode.value = true
+                }
+            } else {
+                viewModel.isContinuousMode.value = false
+            }
+        }
+
+        // КНОПКА СТОП ТРЕКА
+        binding.stopTrackingButton.setOnClickListener {
+            if (viewModel.isTracking.value == true) {
+                // Завершаем трек на последних известных координатах
+                viewModel.stopContinuousTrack(lastTouchX, lastTouchY)
+            }
         }
 
         binding.mapImageView.setOnMatrixChangeListener { binding.pointsOverlay.updateMatrix(binding.mapImageView.imageMatrix) }
@@ -241,14 +314,23 @@ class MainActivity : AppCompatActivity() {
                     handleNoteTap(x, y)
                     viewModel.isInNoteCreationMode.value = false
                 }
-
                 viewModel.isInCalibrationMode.value == true -> {
                     handleCalibrationTap(x, y)
                 }
-
                 else -> {
-                    if (prepareForScan(x, y)) {
-                        checkPermissionsAndScan()
+                    // ГЛАВНАЯ ЛОГИКА ТАПА
+                    val originalCoords = getOriginalImageCoordinates(binding.mapImageView, x, y) ?: return@setOnViewTapListener
+                    lastTouchX = originalCoords[0]
+                    lastTouchY = originalCoords[1]
+
+                    if (viewModel.isContinuousMode.value == true) {
+                        // Режим непрерывного сканирования
+                        handleContinuousTap(lastTouchX, lastTouchY)
+                    } else {
+                        // Старый режим Stop-and-Go
+                        if (prepareForScan(x, y)) {
+                            checkPermissionsAndScan()
+                        }
                     }
                 }
             }
@@ -274,21 +356,22 @@ class MainActivity : AppCompatActivity() {
         val hasActions = viewModel.actionsHistory.value?.isNotEmpty() == true
         val hasMap = viewModel.isMapLoaded.value == true
 
-        binding.saveReportButton.isEnabled = hasActions
+        // Активируем кнопку сохранения, если есть история. В процессе записи трека - не активируем.
+        binding.saveReportButton.isEnabled = hasActions && (viewModel.isTracking.value != true)
         binding.undoButton.visibility = if (hasActions) View.VISIBLE else View.INVISIBLE
 
         binding.scaleButton.visibility = if (hasMap) View.VISIBLE else View.INVISIBLE
         binding.addNoteButton.visibility = if (hasMap) View.VISIBLE else View.INVISIBLE
+        // Кнопка режима
+        binding.modeSwitchButton.visibility = if (hasMap) View.VISIBLE else View.INVISIBLE
     }
 
     private fun showFirstTimeWarningIfNeeded() {
-        // Мы добавляем версию ключа (например _v2) или оставляем как есть, если хотим затронуть только новых пользователей.
-        // Для охвата всех лучше использовать новый ключ или считать, что если человек сканирует - он увидит предупреждение при лимите.
         val prefs = getSharedPreferences("WiProberPrefs", MODE_PRIVATE)
         if (!prefs.getBoolean("has_shown_disconnect_warning_v2", false)) {
             val message = "1. Приложение кратковременно отключает Wi-Fi перед сканированием для точности.\n\n" +
                     "2. Android ограничивает частоту сканирования (4 раза за 2 мин).\n" +
-                    "Для быстрой работы без задержек рекомендуем отключить «Wi-Fi scan throttling» в настройках разработчика."
+                    "Для быстрой работы рекомендуем отключить «Wi-Fi scan throttling» в настройках разработчика."
 
             MaterialAlertDialogBuilder(this)
                 .setTitle("Важная информация")
@@ -298,8 +381,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 .setNeutralButton("Настройки Dev") { _, _ ->
                     openDeveloperSettings()
-                    // Не сохраняем флаг, чтобы показать еще раз, если пользователь вернулся
-                    // или сохраняем - на ваше усмотрение. Лучше сохранить:
                     prefs.edit().putBoolean("has_shown_disconnect_warning_v2", true).apply()
                 }
                 .setCancelable(false)
@@ -312,7 +393,6 @@ class MainActivity : AppCompatActivity() {
             val intent = Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS)
             startActivity(intent)
         } catch (e: Exception) {
-            // Если не удалось открыть меню разработчика, открываем общие настройки
             try {
                 startActivity(Intent(Settings.ACTION_SETTINGS))
                 Toast.makeText(this, "Найдите раздел 'Для разработчиков'", Toast.LENGTH_LONG).show()
@@ -322,13 +402,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    // Диалог блокировки Continuous режима (если троттлинг включен)
+    private fun showThrottlingBlockDialog() {
+        MaterialAlertDialogBuilder(this)
+            .setTitle("Режим недоступен")
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .setMessage("Режим непрерывного сканирования требует отключения 'Wi-Fi Scan Throttling' в настройках разработчика.\n\nИначе система заблокирует частые сканирования.")
+            .setPositiveButton("Открыть настройки") { _, _ -> openDeveloperSettings() }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    // Диалог предупреждения для Stop-and-Go
     private fun showThrottlingLimitDialog(secondsLeft: Int) {
         MaterialAlertDialogBuilder(this)
             .setTitle("Лимит частоты сканирования")
-            .setIcon(R.drawable.ic_info) // Убедитесь, что эта иконка есть, или используйте системную android.R.drawable.ic_dialog_info
+            .setIcon(R.drawable.ic_info)
             .setMessage("Операционная система ограничивает частоту поиска сетей.\n\n" +
                     "Ожидание разблокировки: $secondsLeft сек.\n\n" +
-                    "Чтобы убрать это ограничение навсегда, отключите опцию «Wi-Fi scan throttling» (Ограничение поиска сетей) в настройках разработчика.")
+                    "Чтобы убрать это ограничение, отключите «Wi-Fi scan throttling» в настройках разработчика.")
             .setPositiveButton("Открыть настройки") { _, _ ->
                 openDeveloperSettings()
             }
@@ -339,19 +431,12 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showAboutDialog() {
-        // Получаем версию приложения из PackageManager
         val versionName = try {
-            val pInfo = packageManager.getPackageInfo(packageName, 0)
-            pInfo.versionName
-        } catch (e: PackageManager.NameNotFoundException) {
-            e.printStackTrace()
-            "N/A"
-        }
+            packageManager.getPackageInfo(packageName, 0).versionName
+        } catch (e: PackageManager.NameNotFoundException) { "N/A" }
 
-        // Собираем текст для диалога
         val message = "Версия: $versionName\n\n" +
-                "WiProber - это open-source инструмент для проведения Wi-Fi обследований.\n\n" +
-                "Вы можете найти исходный код, сообщить об ошибке или предложить улучшение на GitHub."
+                "WiProber - open-source инструмент для Wi-Fi обследований.\n"
 
         MaterialAlertDialogBuilder(this)
             .setTitle("О программе WiProber")
@@ -359,7 +444,6 @@ class MainActivity : AppCompatActivity() {
             .setMessage(message)
             .setPositiveButton("OK", null)
             .setNeutralButton("GitHub") { _, _ ->
-                // Открываем ссылку на репозиторий
                 val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/htechno/WiProber"))
                 startActivity(intent)
             }
@@ -367,12 +451,84 @@ class MainActivity : AppCompatActivity() {
     }
     //</editor-fold>
 
-    //<editor-fold desc="Scan Logic">
+    //<editor-fold desc="LOGIC: Continuous Mode">
+
+    // Обработка тапа в режиме CONTINUOUS
+    private fun handleContinuousTap(x: Float, y: Float) {
+        if (viewModel.isTracking.value == true) {
+            // Трек уже пишется -> Это поворот (Waypoint)
+            viewModel.addContinuousWaypoint(x, y)
+            Toast.makeText(this, "Поворот зафиксирован", Toast.LENGTH_SHORT).show()
+        } else {
+            // Трек не пишется -> Это Старт
+
+            // Проверка Wifi перед стартом
+            if (!WifiScanner.isWifiEnabled()) {
+                Toast.makeText(this, "Для старта включите Wi-Fi", Toast.LENGTH_SHORT).show()
+                return
+            }
+
+            val perms = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.CHANGE_WIFI_STATE, Manifest.permission.ACCESS_WIFI_STATE)
+            if (perms.all { ActivityCompat.checkSelfPermission(this, it) == PackageManager.PERMISSION_GRANTED }) {
+                // Старт!
+                viewModel.startContinuousTrack(x, y)
+                Toast.makeText(this, "Старт трека! Начинайте движение...", Toast.LENGTH_SHORT).show()
+
+                // ЗАПУСКАЕМ ФОНОВОЕ СКАНИРОВАНИЕ
+                startContinuousScanningLoop()
+            } else {
+                requestPermissionLauncher.launch(perms)
+            }
+        }
+    }
+
+    /**
+     * Рекурсивная функция для бесконечного сканирования, пока isTracking == true
+     */
+    private fun startContinuousScanningLoop() {
+        if (viewModel.isTracking.value != true) return
+
+        // Проверяем WiFi (на всякий случай)
+        if (!WifiScanner.isWifiEnabled()) {
+            // Если WiFi отвалился в процессе, завершаем трек аварийно
+            Toast.makeText(this, "WiFi выключился! Трек остановлен.", Toast.LENGTH_LONG).show()
+            viewModel.stopContinuousTrack(lastTouchX, lastTouchY)
+            return
+        }
+
+        val startTime = System.currentTimeMillis()
+
+        // WifiScanner.startScan делает дисконнект. В Continuous режиме это может быть медленно,
+        // но пока оставим как есть для совместимости.
+        WifiScanner.startScan(
+            onResults = { results ->
+                val duration = System.currentTimeMillis() - startTime
+
+                // 1. Сохраняем результат
+                val wifiInfoList = mapScanResults(results)
+                viewModel.addContinuousScanResult(wifiInfoList, duration)
+
+                // 2. Сразу запускаем следующий скан, если всё еще идем
+                if (viewModel.isTracking.value == true) {
+                    startContinuousScanningLoop() // Рекурсия
+                }
+            },
+            onFailure = {
+                // Если ошибка (например, драйвер заглючил), пробуем снова через паузу
+                lifecycleScope.launch {
+                    delay(1000)
+                    if (viewModel.isTracking.value == true) startContinuousScanningLoop()
+                }
+            }
+        )
+    }
+    //</editor-fold>
+
+
+    //<editor-fold desc="LOGIC: Stop-and-Go Mode & Setup">
     private fun prepareForScan(x: Float, y: Float): Boolean {
         if (!canScan()) return false
-        val originalCoords = getOriginalImageCoordinates(binding.mapImageView, x, y) ?: return false
-        lastTouchX = originalCoords[0]
-        lastTouchY = originalCoords[1]
+        // Координаты уже сохранены в lastTouchX/Y до вызова этой функции
         return true
     }
 
@@ -402,45 +558,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * Проверяет, включено ли системное ограничение частоты сканирования (Throttling).
-     *
-     * На Android 11+ (API 30) это делается через официальный API WifiManager.
-     * На старых версиях пытаемся прочитать глобальную настройку через Settings.
-     */
     private fun isSystemThrottlingEnabled(): Boolean {
-        // Получаем WifiManager для проверки состояния
         val wifiManager = applicationContext.getSystemService(android.content.Context.WIFI_SERVICE) as? android.net.wifi.WifiManager
-        // Если не удалось получить менеджер, считаем что ограничение есть для безопасности
             ?: return true
 
-        // ВАРИАНТ 1: Android 11 (R) и новее - Официальный метод
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             return wifiManager.isScanThrottleEnabled
         }
 
-        // ВАРИАНТ 2: Старые версии Android (до 11) - Хак через Settings
         return try {
             val setting = Settings.Global.getInt(
                 contentResolver,
                 "wifi_scan_throttle_enabled"
             )
-            // 1 = Enabled (Throttling ON), 0 = Disabled (Throttling OFF)
             setting == 1
         } catch (e: Exception) {
             Log.w("ThrottlingCheck", "Не удалось прочитать настройку throttling старым методом", e)
-            true // По умолчанию считаем, что включено
+            true
         }
     }
 
     private fun canScan(): Boolean {
-        // ШАГ 1: Проверяем настройки разработчика (адаптивно для разных версий Android)
-        if (!isSystemThrottlingEnabled()) {
-            // Троттлинг выключен в системе -> разрешаем сканирование безлимитно.
-            return true
-        }
+        if (!isSystemThrottlingEnabled()) return true
 
-        // ШАГ 2: Стандартная логика защиты для обычных пользователей (Троттлинг в системе ВКЛЮЧЕН или неизвестен)
         val twoMinutesInMillis = 2 * 60 * 1000
         val currentTime = System.currentTimeMillis()
         viewModel.recentScanTimestamps.removeAll { timestamp -> currentTime - timestamp > twoMinutesInMillis }
@@ -451,9 +591,6 @@ class MainActivity : AppCompatActivity() {
             val oldestRecentScan = viewModel.recentScanTimestamps.minOrNull() ?: currentTime
             val timeToWait = (oldestRecentScan + twoMinutesInMillis) - currentTime
             val secondsLeft = (timeToWait / 1000).toInt() + 1
-
-            // Если пользователь пытается нажать слишком часто, показываем диалог (не toast),
-            // объясняющий как это исправить.
             if (currentTime - lastThrottlingToastTime > 5000) {
                 showThrottlingLimitDialog(secondsLeft)
                 lastThrottlingToastTime = currentTime
@@ -470,27 +607,9 @@ class MainActivity : AppCompatActivity() {
                 viewModel.recentScanTimestamps.add(System.currentTimeMillis())
 
                 Toast.makeText(this, "Найдено сетей: ${results.size}", Toast.LENGTH_SHORT).show()
+                val wifiInfoList = mapScanResults(results)
 
-                val wifiInfoList = results.map { scanResult ->
-                    val ssid = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        scanResult.wifiSsid?.toString()?.removeSurrounding("\"") ?: "<unknown ssid>"
-                    } else {
-                        @Suppress("DEPRECATION")
-                        scanResult.SSID
-                    }
-                    WifiNetworkInfo(
-                        ssid = ssid,
-                        bssid = scanResult.BSSID,
-                        level = scanResult.level,
-                        frequency = scanResult.frequency,
-                        security = parseSecurity(scanResult.capabilities),
-                        technologies = getWifiTechnologies(scanResult),
-                        informationElements = getInformationElementsAsBase64(scanResult)
-                    )
-                }
-
-                val newPoint =
-                    ScanPoint(System.currentTimeMillis(), lastTouchX, lastTouchY, wifiInfoList)
+                val newPoint = ScanPoint(System.currentTimeMillis(), lastTouchX, lastTouchY, wifiInfoList)
                 viewModel.addScanPoint(newPoint)
             },
             onFailure = {
@@ -498,6 +617,27 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, "Ошибка сканирования Wi-Fi", Toast.LENGTH_SHORT).show()
             }
         )
+    }
+
+    // Вспомогательная функция, чтобы не дублировать код маппинга
+    private fun mapScanResults(results: List<android.net.wifi.ScanResult>): List<WifiNetworkInfo> {
+        return results.map { scanResult ->
+            val ssid = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                scanResult.wifiSsid?.toString()?.removeSurrounding("\"") ?: "<unknown ssid>"
+            } else {
+                @Suppress("DEPRECATION")
+                scanResult.SSID
+            }
+            WifiNetworkInfo(
+                ssid = ssid,
+                bssid = scanResult.BSSID,
+                level = scanResult.level,
+                frequency = scanResult.frequency,
+                security = parseSecurity(scanResult.capabilities),
+                technologies = getWifiTechnologies(scanResult),
+                informationElements = getInformationElementsAsBase64(scanResult)
+            )
+        }
     }
     //</editor-fold>
 
@@ -523,11 +663,7 @@ class MainActivity : AppCompatActivity() {
             .setPositiveButton("Сохранить") { _, _ ->
                 val text = noteEditText.text.toString()
                 if (text.isBlank() && tempPhotoUriForNote == null) {
-                    Toast.makeText(
-                        this,
-                        "Заметка должна содержать текст или фото",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Toast.makeText(this, "Заметка должна содержать текст или фото", Toast.LENGTH_SHORT).show()
                     return@setPositiveButton
                 }
                 var photoW: Int? = null
@@ -538,15 +674,9 @@ class MainActivity : AppCompatActivity() {
                         val bitmap = ImageDecoder.decodeBitmap(source)
                         photoW = bitmap.width
                         photoH = bitmap.height
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
+                    } catch (e: Exception) { e.printStackTrace() }
                 }
-                val newNote = AppNote(
-                    text = text, photoUri = tempPhotoUriForNote,
-                    photoWidth = photoW, photoHeight = photoH,
-                    x = noteCoords[0], y = noteCoords[1]
-                )
+                val newNote = AppNote(text = text, photoUri = tempPhotoUriForNote, photoWidth = photoW, photoHeight = photoH, x = noteCoords[0], y = noteCoords[1])
                 viewModel.addNote(newNote)
             }
             .setOnDismissListener { activeNoteDialogPreview = null }
@@ -560,17 +690,11 @@ class MainActivity : AppCompatActivity() {
             .setItems(options) { _, which ->
                 when (which) {
                     0 -> {
-                        val photoFile =
-                            File(cacheDir, "note_photo_${System.currentTimeMillis()}.jpg")
-                        val photoUri = FileProvider.getUriForFile(
-                            this,
-                            "${applicationContext.packageName}.provider",
-                            photoFile
-                        )
+                        val photoFile = File(cacheDir, "note_photo_${System.currentTimeMillis()}.jpg")
+                        val photoUri = FileProvider.getUriForFile(this, "${applicationContext.packageName}.provider", photoFile)
                         tempPhotoUriForNote = photoUri
                         takePictureLauncher.launch(photoUri)
                     }
-
                     1 -> selectNoteImageLauncher.launch("image/*")
                 }
             }
@@ -660,11 +784,9 @@ class MainActivity : AppCompatActivity() {
                 android.net.wifi.ScanResult.WIFI_STANDARD_11AX -> {
                     technologies.add("AX"); technologies.add("AC"); technologies.add("N")
                 }
-
                 android.net.wifi.ScanResult.WIFI_STANDARD_11AC -> {
                     technologies.add("AC"); technologies.add("N")
                 }
-
                 android.net.wifi.ScanResult.WIFI_STANDARD_11N -> technologies.add("N")
             }
             if (frequency in 2400..3000) {
@@ -719,9 +841,19 @@ class MainActivity : AppCompatActivity() {
             try {
                 val builder = EkahauReportBuilder()
                 val report = builder.build(
+                    // 1. Старые точки (Stop-and-Go)
                     viewModel.scanPoints.value ?: emptyList(),
+
+                    // 2. Новые сессии (Continuous) - ТЕПЕРЬ ВСЕ ВЕРНО
+                    viewModel.continuousScanSessions.value ?: emptyList(),
+
+                    // 3. Инфо о карте
                     viewModel.currentMapInfo.value!!,
+
+                    // 4. Масштаб
                     viewModel.metersPerUnit.value,
+
+                    // 5. Заметки
                     viewModel.notesList.value ?: emptyList()
                 )
                 val gson = com.google.gson.GsonBuilder().setPrettyPrinting().create()
@@ -729,15 +861,9 @@ class MainActivity : AppCompatActivity() {
                 // Динамические файлы
                 File(cacheDir, "project.json").writeText(gson.toJson(report.project))
                 File(cacheDir, "floorPlans.json").writeText(gson.toJson(report.floorPlans))
-                File(
-                    cacheDir,
-                    "accessPointMeasurements.json"
-                ).writeText(gson.toJson(report.accessPointMeasurements))
+                File(cacheDir,"accessPointMeasurements.json").writeText(gson.toJson(report.accessPointMeasurements))
                 File(cacheDir, "surveyLookups.json").writeText(gson.toJson(report.surveyLookups))
-                File(
-                    cacheDir,
-                    "projectHistorys.json"
-                ).writeText(gson.toJson(report.projectHistorys))
+                File(cacheDir, "projectHistorys.json").writeText(gson.toJson(report.projectHistorys))
                 File(cacheDir, "images.json").writeText(gson.toJson(report.images))
                 File(cacheDir, "accessPoints.json").writeText(gson.toJson(report.accessPoints))
                 File(cacheDir, "measuredRadios.json").writeText(gson.toJson(report.measuredRadios))
@@ -749,33 +875,35 @@ class MainActivity : AppCompatActivity() {
                     File(cacheDir, "survey-$surveyId.json").writeText(gson.toJson(surveyWrapper))
                 }
 
+                // ГЕНЕРАЦИЯ wifiAdapterInformations.json
+                val manufacturer = Build.MANUFACTURER.replaceFirstChar { it.uppercase() }
+                val model = Build.MODEL
+
+                val userDefinedName = try {
+                    Settings.Global.getString(contentResolver, Settings.Global.DEVICE_NAME)
+                } catch (e: Exception) { null }
+
+                val finalAdapterName = if (!userDefinedName.isNullOrBlank() && userDefinedName != model) {
+                    "$userDefinedName ($manufacturer $model)"
+                } else {
+                    "$manufacturer $model"
+                }
+
+                val adapterInfo = EsxWifiAdapterInformation(name = finalAdapterName)
+                val adapterWrapper = EsxWifiAdapterInformationsWrapper(listOf(adapterInfo))
+                File(cacheDir, "wifiAdapterInformations.json").writeText(gson.toJson(adapterWrapper))
+
                 // Статические файлы
-                copyAssetToFile(
-                    "projectConfiguration.json",
-                    File(cacheDir, "projectConfiguration.json")
-                )
+                copyAssetToFile("projectConfiguration.json", File(cacheDir, "projectConfiguration.json"))
                 copyAssetToFile("requirements.json", File(cacheDir, "requirements.json"))
                 copyAssetToFile("usageProfiles.json", File(cacheDir, "usageProfiles.json"))
                 copyAssetToFile("version", File(cacheDir, "version"))
                 copyAssetToFile("wallTypes.json", File(cacheDir, "wallTypes.json"))
-                copyAssetToFile(
-                    "applicationProfiles.json",
-                    File(cacheDir, "applicationProfiles.json")
-                )
-                copyAssetToFile(
-                    "attenuationAreaTypes.json",
-                    File(cacheDir, "attenuationAreaTypes.json")
-                )
+                copyAssetToFile("applicationProfiles.json", File(cacheDir, "applicationProfiles.json"))
+                copyAssetToFile("attenuationAreaTypes.json", File(cacheDir, "attenuationAreaTypes.json"))
                 copyAssetToFile("deviceProfiles.json", File(cacheDir, "deviceProfiles.json"))
                 copyAssetToFile("floorTypes.json", File(cacheDir, "floorTypes.json"))
-                copyAssetToFile(
-                    "networkCapacitySettings.json",
-                    File(cacheDir, "networkCapacitySettings.json")
-                )
-                copyAssetToFile(
-                    "wifiAdapterInformations.json",
-                    File(cacheDir, "wifiAdapterInformations.json")
-                )
+                copyAssetToFile("networkCapacitySettings.json", File(cacheDir, "networkCapacitySettings.json"))
 
                 // Бинарники и изображения
                 report.binaryData.forEach { (binaryFileId, bytes) ->
@@ -806,9 +934,7 @@ class MainActivity : AppCompatActivity() {
                         cacheDir.listFiles()?.forEach { file ->
                             zipStream.putNextEntry(ZipEntry(file.name))
                             FileInputStream(file).use { fileInputStream ->
-                                fileInputStream.copyTo(
-                                    zipStream
-                                )
+                                fileInputStream.copyTo(zipStream)
                             }
                             zipStream.closeEntry()
                         }
