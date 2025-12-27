@@ -35,3 +35,24 @@ data class AppNote(
     val y: Float,
     val pictureNoteId: String = UUID.randomUUID().toString()
 )
+
+// Новый класс для непрерывного сканирования
+data class ContinuousScanSession(
+    val id: String = UUID.randomUUID().toString(),
+    val startTime: Long,
+    var endTime: Long = 0,
+    val waypoints: MutableList<RoutePointWrapper>, // Точки нажатий (повороты)
+    val scanResults: MutableList<ScanResultWrapper> // Все результаты сканирований в процессе ходьбы
+)
+
+data class RoutePointWrapper(
+    val timestamp: Long, // Время нажатия относительно начала (startTime)
+    val x: Float,
+    val y: Float
+)
+
+data class ScanResultWrapper(
+    val timestamp: Long, // Время получения результатов относительно начала
+    val duration: Long,  // Сколько длился этот конкретный скан (разница между startScan и onResults)
+    val wifiNetworks: List<WifiNetworkInfo>
+)

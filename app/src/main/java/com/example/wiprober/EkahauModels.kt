@@ -8,7 +8,8 @@ import java.util.TimeZone
 import java.util.UUID
 
 private const val PROJECT_CONFIG_ID = "ac617491-9beb-4f3a-b600-f0037669c1a9"
-private const val WIFI_ADAPTER_ID = "3fb11fa8-4a44-4be9-b588-15d767bd768a"
+
+const val WIFI_ADAPTER_ID = "3fb11fa8-4a44-4be9-b588-15d767bd768a"
 
 // ----------- Файл: project.json -----------
 data class EsxProjectWrapper(val project: EsxProject)
@@ -204,6 +205,21 @@ data class EsxNote(
     @SerializedName("text") val text: String,
     @SerializedName("imageIds") val imageIds: List<String>, // Список ID картинок из images.json
     @SerializedName("history") val history: EsxSurveyHistory
+)
+
+// ----------- Файл: wifiAdapterInformations.json -----------
+data class EsxWifiAdapterInformationsWrapper(val wifiAdapterInformations: List<EsxWifiAdapterInformation>)
+
+data class EsxWifiAdapterInformation(
+    @SerializedName("id") val id: String = WIFI_ADAPTER_ID, // Используем ту же константу!
+    @SerializedName("status") val status: String = "CREATED",
+    @SerializedName("name") val name: String, // Сюда мы запишем имя телефона
+    @SerializedName("mac") val mac: String = "02:00:00:00:00:00", // Android 10+ скрывает реальный MAC, ставим заглушку
+    @SerializedName("vendor") val vendor: String = "Android System",
+    @SerializedName("driverVersion") val driverVersion: String = android.os.Build.VERSION.RELEASE,
+    @SerializedName("driverDate") val driverDate: String = SimpleDateFormat("MM-dd-yyyy", Locale.US).format(Date()),
+    @SerializedName("driverFiles") val driverFiles: String = "wlan",
+    @SerializedName("revision") val revision: String = android.os.Build.BOARD
 )
 
 // ----------- Файл: pictureNotes.json -----------
