@@ -5,7 +5,6 @@ import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
-import kotlin.math.abs
 
 /**
  * Вспомогательный класс для хранения всех сгенерированных файлов и данных
@@ -177,8 +176,14 @@ class EkahauReportBuilder {
             val measurementsForBin = mutableListOf<BinaryDataSerializer.MeasurementEntry>()
 
             session.scanResults.forEach { scan ->
-                // scan.timestamp - это время относительно старта сессии (ms)
-                val relTimeMillis = scan.timestamp.toInt()
+                // ПРАВКА ВРЕМЕНИ:
+                // В бинарный файл пишем время НАЧАЛА сканирования (Start Time), а не конца.
+                // scan.timestamp = конец сканирования (относительно старта трека).
+                // scan.duration  = длительность.
+                val relStartTime = scan.timestamp - scan.duration
+
+                // Защита от отрицательных чисел и перевод в Int (мс)
+                val relTimeMillis = if (relStartTime < 0) 0 else relStartTime.toInt()
 
                 scan.wifiNetworks.forEach { net ->
                     apMap[net.bssid]?.id?.let { apId ->
@@ -189,7 +194,8 @@ class EkahauReportBuilder {
                     }
                 }
             }
-            // Сортировка: сначала по времени, потом по ID AP
+
+            // Сортировка: сначала по времени, потом по ID AP. Это важно для правильной группировки в Serializer.
             measurementsForBin.sortWith(compareBy({ it.relTimestamp }, { it.apIndex }))
 
             // 3. Формируем RoutePoints (Путь) - время в наносекундах!
@@ -202,8 +208,6 @@ class EkahauReportBuilder {
 
             // 4. Формируем Scannings (Интервалы работы радио) - время в наносекундах
             val scanningsList = session.scanResults.map { scan ->
-                // scan.timestamp - момент получения результата
-                // Начало скана = timestamp - duration
                 val endNs = scan.timestamp * 1000000L
                 val startNs = (scan.timestamp - scan.duration) * 1000000L
                 Scanning(
@@ -230,8 +234,8 @@ class EkahauReportBuilder {
                 floorPlanId = floorPlan.id,
                 name = surveyName,
                 startTime = surveyStartTime,
-                duration = totalDurationMs * 1000000L, // Продолжительность в наносекундах
-                routePoints = listOf(routePointsList), // Список списков (сегменты пути)
+                duration = totalDurationMs * 1000000L,
+                routePoints = listOf(routePointsList),
                 wifiTracks = listOf(wifiTrack),
                 history = EsxSurveyHistory(createdAt = surveyStartTime),
                 routeType = "CONTINUOUS"
@@ -253,7 +257,7 @@ class EkahauReportBuilder {
         val projectHistoryEntry = EsxProjectHistoryEntry(projectId = project.id, projectName = project.name)
         val projectHistorysWrapper = EsxProjectHistorysWrapper(listOf(projectHistoryEntry))
 
-        // Генерация заметок (без изменений)
+        // Генерация заметок
         val esxNotes = mutableListOf<EsxNote>()
         val esxPictureNotes = mutableListOf<EsxPictureNote>()
         val esxImagesForNotes = mutableListOf<EsxImage>()

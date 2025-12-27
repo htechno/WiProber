@@ -7,13 +7,12 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <!-- 1. Место для отображения карты -->
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/mapImageView"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="#E0E0E0"
-        android:contentDescription="Map"
+        android:contentDescription="@string/cd_map_image"
         android:scaleType="fitCenter"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -29,7 +28,7 @@
         app:layout_constraintStart_toStartOf="@+id/mapImageView"
         app:layout_constraintTop_toTopOf="@+id/mapImageView" />
 
-    <!-- НИЖНЯЯ ПАНЕЛЬ -->
+    <!-- Bottom Panel -->
     <LinearLayout
         android:id="@+id/bottomPanel"
         android:layout_width="0dp"
@@ -48,7 +47,7 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:text="Select Map" />
+            android:text="@string/btn_select_map" />
 
         <ImageButton
             android:id="@+id/undoButton"
@@ -56,6 +55,7 @@
             android:layout_height="match_parent"
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
+            android:contentDescription="@string/cd_undo"
             android:src="@drawable/ic_undo"
             android:visibility="invisible"
             tools:visibility="visible" />
@@ -66,7 +66,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:enabled="false"
-            android:text="Save Report" />
+            android:text="@string/btn_save_report" />
 
     </LinearLayout>
 
@@ -84,7 +84,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:trackThickness="6dp" />
 
-    <!-- ВЕРХНЯЯ ЛЕВАЯ ПАНЕЛЬ ИНСТРУМЕНТОВ -->
+    <!-- Top Left Tools -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -94,54 +94,47 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Кнопка заметки -->
         <ImageButton
             android:id="@+id/addNoteButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/cd_add_note"
             android:src="@drawable/ic_add_note"
             android:visibility="invisible"
             tools:visibility="visible" />
 
-        <!-- Кнопка масштаба -->
         <ImageButton
             android:id="@+id/scaleButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginTop="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/cd_scale"
             android:src="@drawable/ic_scale"
             android:visibility="invisible"
             tools:visibility="visible" />
 
-        <!-- КНОПКА ПЕРЕКЛЮЧЕНИЯ РЕЖИМА (НОВАЯ) -->
-        <!-- По умолчанию иконка для Stop-and-Go (Мишень) -->
-        <!-- При нажатии меняется на Continuous (Человечек/Следы) -->
-        <!-- Используем системные иконки или свои -->
         <ImageButton
             android:id="@+id/modeSwitchButton"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginTop="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/cd_switch_mode"
             android:src="@android:drawable/ic_menu_myplaces"
             android:visibility="invisible"
-            android:contentDescription="Switch Scan Mode"
             tools:visibility="visible" />
-        <!-- ic_menu_myplaces похожа на точку на карте, подойдет для начала -->
 
     </LinearLayout>
 
-    <!-- КНОПКА СТОП (Для continuous режима) -->
-    <!-- Показывается только когда идет запись трека -->
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/stopTrackingButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:backgroundTint="#D32F2F"
-        android:text="STOP TRACKING"
+        android:text="@string/btn_stop_tracking"
         android:textColor="@android:color/white"
         android:visibility="gone"
         app:icon="@android:drawable/ic_media_pause"
@@ -151,8 +144,6 @@
         app:layout_constraintStart_toStartOf="parent"
         tools:visibility="visible" />
 
-
-    <!-- Кнопка О программе (справа вверху) -->
     <ImageButton
         android:id="@+id/aboutButton"
         android:layout_width="48dp"
@@ -160,6 +151,7 @@
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
         android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/cd_about"
         android:src="@drawable/ic_info"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />

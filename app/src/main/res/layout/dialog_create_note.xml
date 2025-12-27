@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Текст заметки"
+        android:text="@string/note_label_text"
         android:textAppearance="?attr/textAppearanceLabelMedium" />
 
     <EditText
@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
         android:gravity="top"
-        android:hint="Введите текст..."
+        android:hint="@string/note_hint_enter_text"
         android:lines="3" />
 
     <Button
@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="16dp"
-        android:text="Прикрепить фото" />
+        android:text="@string/note_btn_attach_photo" />
 
     <ImageView
         android:id="@+id/photoPreview"

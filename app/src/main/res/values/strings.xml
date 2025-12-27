@@ -1,6 +1,21 @@
 <resources>
     <string name="app_name">WiProber</string>
-    <string name="map_image_description">Карта помещения</string>
-    <string name="select_map_button_text">Выбрать карту</string>
-    <string name="save_report_button_text">Сохранить отчет</string>
+
+    <!-- Buttons -->
+    <string name="btn_select_map">Select Map</string>
+    <string name="btn_save_report">Save Report</string>
+    <string name="btn_stop_tracking">Stop Tracking</string>
+
+    <!-- Content Descriptions -->
+    <string name="cd_map_image">Floor Plan Map</string>
+    <string name="cd_add_note">Add Note</string>
+    <string name="cd_scale">Calibrate Scale</string>
+    <string name="cd_switch_mode">Switch Scan Mode</string>
+    <string name="cd_about">About App</string>
+    <string name="cd_undo">Undo Last Action</string>
+
+    <!-- Note Dialog -->
+    <string name="note_label_text">Note Text</string>
+    <string name="note_hint_enter_text">Enter text here...</string>
+    <string name="note_btn_attach_photo">Attach Photo</string>
 </resources>

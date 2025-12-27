@@ -14,8 +14,6 @@ import android.os.Build
 
 /**
  * Синглтон-объект, инкапсулирующий всю логику работы с Wi-Fi API Android.
- * Отвечает за инициализацию, запуск сканирования и получение результатов
- * через BroadcastReceiver.
  */
 object WifiScanner {
 
@@ -50,14 +48,11 @@ object WifiScanner {
         }
     }
 
-    /**
-     * Инициализация сканера. Нужно вызвать один раз, например, в Application.onCreate или MainActivity.onCreate
-     */
     fun initialize(context: Context) {
         wifiManager =
             context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
         val intentFilter = IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) { // TIRAMISU это API 33
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.registerReceiver(
                 wifiScanReceiver,
                 intentFilter,
@@ -71,25 +66,31 @@ object WifiScanner {
 
     /**
      * Запускает сканирование.
-     * @param onResults - функция, которая будет вызвана с результатами сканирования.
-     * @param onFailure - функция, которая будет вызвана в случае ошибки.
+     * @param onResults - колбэк успеха
+     * @param onFailure - колбэк ошибки
+     * @param shouldDisconnect - нужно ли принудительно отключать WiFi перед сканом.
+     *        true - для Stop-and-Go (выше точность измерений).
+     *        false - для Continuous (выше скорость, связь не рвется).
      */
     fun startScan(
         onResults: (List<ScanResult>) -> Unit,
-        onFailure: () -> Unit
+        onFailure: () -> Unit,
+        shouldDisconnect: Boolean = true // По умолчанию ведем себя как раньше
     ) {
         this.onScanResults = onResults
         this.onScanFailure = onFailure
 
-        Log.d("WifiScanner", "Принудительное отключение от текущей сети перед сканированием...")
-        @Suppress("DEPRECATION")
-        wifiManager.disconnect()
-        try {
-            Thread.sleep(300)
-        } catch (_: InterruptedException) {
+        if (shouldDisconnect) {
+            Log.d("WifiScanner", "Принудительное отключение от текущей сети перед сканированием...")
+            @Suppress("DEPRECATION")
+            wifiManager.disconnect()
+            try {
+                Thread.sleep(300)
+            } catch (_: InterruptedException) {
+            }
         }
 
-        Log.d("WifiScanner", "Запрос на запуск сканирования...")
+        Log.d("WifiScanner", "Запрос на запуск сканирования (Disconnect: $shouldDisconnect)...")
         @Suppress("DEPRECATION")
         val success = wifiManager.startScan()
         if (!success) {
