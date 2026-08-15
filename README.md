@@ -14,6 +14,9 @@ This project was born out of the need for a simple, mobile-first tool for networ
 ## Features
 
 *   **Interactive Floor Plan:** Load any image as a floor plan, with support for zoom and pan.
+*   **Local Project Hub:** Create a project, open an ESX file, or continue one of the most recently used local projects.
+*   **Project Status and Management:** Recent projects expose explicit loading/error states and a confirmed local-delete action. The survey screen shows active-floor counts and complete-project export results.
+*   **Multi-floor Projects:** Import every supported floor from an ESX archive, switch floors while surveying, and add new named floor plans.
 *   **Two Survey Modes:**
     *   **🔴 Stop-and-Go:** Tap a point, wait for a scan, move to the next point. High precision.
     *   **👣 Continuous (New in v2.0):** Tap "Start", walk along a path, and tap to mark turns. The app scans continuously in the background. Faster data collection.
@@ -21,7 +24,8 @@ This project was born out of the need for a simple, mobile-first tool for networ
 *   **Dynamic Adapter Info:** Automatically detects your device model (e.g., "Samsung S23") and injects this metadata into the project file.
 *   **Note-Taking:** Add text and photo annotations directly onto the map to document access point locations, obstacles, or other points of interest.
 *   **Scale Calibration:** Set the physical scale of the map for accurate-to-reality measurements.
-*   **Full `.esx` Export:** Generates a complete `.esx` project file, including all necessary JSON files, binary track data, and attached images, ready for import into Ekahau Pro™.
+*   **Ekahau-compatible `.esx` Export:** New projects are generated from scratch with the required JSON files, binary Wi-Fi tracks, floor plans, and attached note images. Imported projects keep the complete source archive and append WiProber surveys without regenerating the original measurements.
+*   **`.esx` Import:** Imports floor plans, route geometry, scale, and map-positioned picture notes for display. Original Wi-Fi tracks, spectrum data, and unknown payloads remain opaque and are preserved for the next export.
 
 ## Limitations & System Requirements
 
@@ -34,6 +38,7 @@ This is a non-commercial, open-source project. Please be aware of the following 
 *   **Location Services (GPS):** Android requires Location Services to be enabled to see Wi-Fi networks. The app will prompt you to turn it on.
 *   **No "My Networks" Detection:** The app currently does not automatically identify or flag your own networks ("My Networks"). This must be done manually within Ekahau Pro after import.
 *   **No AP Merging:** WiProber creates a new, separate access point (`accessPoints.json`) for every unique BSSID found. It does not attempt to group multiple radios (e.g., 2.4-GHz and 5-GHz radios) under a single physical access point device. This grouping should be performed manually in Ekahau.
+*   **ESX Editing Scope:** WiProber does not display or edit imported RSSI/frequency/spectrum measurements, walls, requirements, or AP grouping. Schema-v3 projects preserve those source entries unchanged and add new WiProber survey data alongside them. New projects still contain the supported WiProber-generated subset. Projects imported by older schema-v2 builds must be re-imported from their original ESX to gain source-preservation guarantees.
 *   **Legacy Android Data:** On devices running Android 10 (API 29) or older, the app is unable to collect raw Information Elements (IEs) due to OS limitations.
 
 ## Getting Started
@@ -50,21 +55,31 @@ This is a non-commercial, open-source project. Please be aware of the following 
 
 ## How to Use
 
+### Projects
+1.  On the start screen, tap **"New project"** and select the first floor-plan image, or tap **"Open ESX project"**.
+2.  A multi-floor ESX is imported as one project and initially opens on its first floor.
+3.  Use the anchored **Floor** dropdown on the survey screen to switch floors. Its last item, **Add floor…**, creates another named floor.
+4.  Projects are copied into app-owned storage, autosaved, and appear under **Recent projects** for later use. For an imported project, the complete original ESX is retained as an immutable source archive.
+5.  Use the three-dot action on a recent project to delete its complete local workspace. This is permanent and includes the retained source ESX, so export a copy first if needed.
+
 ### Stop-and-Go Mode (Default)
-1.  Tap **"Select Map"** to load a floor plan.
+1.  Open or create a project.
 2.  Tap on the map to scan. A **Red Dot** will appear.
 3.  Wait for the scan to finish. Repeat.
 
 ### Continuous Mode
 1.  **Disable Throttling:** Ensure "Wi-Fi scan throttling" is OFF in Developer Options.
-2.  Tap the **Mode Switch** button (bottom-left, changes from "Point" to "Path" icon).
-3.  Tap on the map to **Start** the track.
+2.  Select **Continuous** in the bottom survey dock.
+3.  Tap **Start route**, then select the start point on the map.
 4.  Start walking. The app scans in the background.
 5.  Tap again to mark a **Turn** (waypoint). A Magenta line follows your path.
-6.  Tap **"STOP TRACKING"** to finish the path. The line turns Green.
+6.  Tap the red **Stop route** action to finish the path. The line turns green.
 
 ### Export
-Tap **"Save Report"** to generate and save the `.esx` project file.
+Tap **"Export ESX"** to generate one `.esx` containing every floor currently stored in the local project. A new project is generated from scratch; an imported project preserves all original archive entries and overlays only WiProber additions or supported edits. Export runs behind a labelled progress state and reports the number of floors, points, routes, and notes written.
+
+### Import
+On the start screen, tap **"Open ESX project"** and select a project. All supported floor plans are imported together; use the selector in the survey screen to move between them.
 
 ## Post-Processing in Ekahau Pro
 

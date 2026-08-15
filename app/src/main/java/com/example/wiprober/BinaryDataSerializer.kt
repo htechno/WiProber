@@ -28,6 +28,14 @@ object BinaryDataSerializer {
      * ...
      */
     fun serialize(measurements: List<MeasurementEntry>): ByteArray {
+        measurements.forEach { item ->
+            require(item.relTimestamp >= 0) { "Binary track timestamp must be non-negative" }
+            require(item.apIndex in 0..MAX_AP_INDEX) { "Binary track AP index is out of range" }
+            require(item.network.level in Byte.MIN_VALUE..Byte.MAX_VALUE) {
+                "Binary track signal level is out of range"
+            }
+            require(item.network.frequency > 0) { "Binary track frequency must be positive" }
+        }
         // 1. Группируем измерения по времени.
         // Каждая уникальная временная метка создает отдельный блок "Scan" (измерение).
         val groupedScans = measurements
@@ -36,17 +44,21 @@ object BinaryDataSerializer {
 
         // 2. Рассчитываем итоговый размер буфера
         // Global Header: 2 байта
-        var totalSize = 2
+        var totalSize = 2L
 
         groupedScans.forEach { (_, apList) ->
+            require(apList.map(MeasurementEntry::apIndex).distinct().size == apList.size) {
+                "Binary track contains duplicate AP measurements in one scan"
+            }
             // Для каждого скана:
             // 5 байт (Scan ID: 00 + Int)
             // N * 17 байт (AP Data)
             // 1 байт (Scan Footer: 10)
-            totalSize += 5 + (apList.size * 17) + 1
+            totalSize += SCAN_OVERHEAD_BYTES + apList.size.toLong() * AP_MEASUREMENT_BYTES
+            require(totalSize <= MAX_BINARY_TRACK_BYTES) { "Binary track is too large" }
         }
 
-        val buffer = ByteBuffer.allocate(totalSize).order(BYTE_ORDER)
+        val buffer = ByteBuffer.allocate(totalSize.toInt()).order(BYTE_ORDER)
 
         // 3. Пишем Глобальный заголовок (ОДИН РАЗ)
         buffer.put(0x02.toByte())
@@ -89,4 +101,9 @@ object BinaryDataSerializer {
 
         return buffer.array()
     }
+
+    private const val MAX_AP_INDEX = 0xFFFF
+    private const val AP_MEASUREMENT_BYTES = 17L
+    private const val SCAN_OVERHEAD_BYTES = 6L
+    private const val MAX_BINARY_TRACK_BYTES = 64L * 1024L * 1024L
 }

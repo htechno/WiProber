@@ -1,0 +1,284 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SurveyActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/surveyAppBar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        app:elevation="4dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/surveyToolbar"
+                android:layout_width="0dp"
+                android:layout_height="?attr/actionBarSize"
+                android:layout_weight="1"
+                android:background="?attr/colorSurface"
+                app:navigationIcon="@drawable/ic_arrow_back"
+                app:title="@string/survey_screen_title" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/floorDropdownLayout"
+                style="@style/Widget.Material3.TextInputLayout.FilledBox.ExposedDropdownMenu"
+                android:layout_width="240dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="12dp"
+                android:hint="@string/floor_dropdown_label"
+                app:boxBackgroundColor="?attr/colorSurfaceContainer">
+
+                <com.google.android.material.textfield.MaterialAutoCompleteTextView
+                    android:id="@+id/floorDropdown"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:contentDescription="@string/cd_floor_dropdown"
+                    android:inputType="none"
+                    android:maxLines="1"
+                    android:singleLine="true" />
+            </com.google.android.material.textfield.TextInputLayout>
+        </LinearLayout>
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <com.github.chrisbanes.photoview.PhotoView
+        android:id="@+id/mapImageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="?attr/colorSurfaceContainerLow"
+        android:contentDescription="@string/cd_map_image"
+        android:scaleType="fitCenter"
+        app:layout_constraintBottom_toTopOf="@id/surveyDock"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/surveyAppBar" />
+
+    <com.example.wiprober.PointsOverlayView
+        android:id="@+id/pointsOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/mapImageView"
+        app:layout_constraintEnd_toEndOf="@id/mapImageView"
+        app:layout_constraintStart_toStartOf="@id/mapImageView"
+        app:layout_constraintTop_toTopOf="@id/mapImageView" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/surveyDock"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_margin="8dp"
+        app:cardElevation="6dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.Material3.Corner.Large">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <com.google.android.material.button.MaterialButtonToggleGroup
+                android:id="@+id/scanModeToggle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:checkedButton="@id/stopAndGoModeButton"
+                app:selectionRequired="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/stopAndGoModeButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:text="@string/scan_mode_stop_and_go" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/continuousModeButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:maxLines="1"
+                    android:text="@string/scan_mode_continuous" />
+            </com.google.android.material.button.MaterialButtonToggleGroup>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/surveyStatusText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:accessibilityLiveRegion="polite"
+                    android:gravity="center"
+                    android:minHeight="24dp"
+                    android:text="@string/scan_hint_stop_and_go"
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+
+                <TextView
+                    android:id="@+id/surveySummaryText"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                    tools:text="2 points · 1 route · 3 notes" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/continuousActionButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:text="@string/start_route"
+                    android:visibility="gone"
+                    app:icon="@drawable/ic_route_start"
+                    app:iconGravity="textStart"
+                    tools:visibility="visible" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/undoButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/cd_undo"
+                    android:minWidth="80dp"
+                    android:text="@string/action_undo"
+                    app:icon="@drawable/ic_undo"
+                    app:iconGravity="textStart" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/addNoteButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/cd_add_note"
+                    android:minWidth="80dp"
+                    android:text="@string/action_note"
+                    app:icon="@drawable/ic_add_note"
+                    app:iconGravity="textStart" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/scaleButton"
+                    style="@style/Widget.Material3.Button.TextButton"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_weight="1"
+                    android:contentDescription="@string/cd_scale"
+                    android:minWidth="80dp"
+                    android:text="@string/action_scale"
+                    app:icon="@drawable/ic_scale"
+                    app:iconGravity="textStart" />
+            </LinearLayout>
+        </LinearLayout>
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.progressindicator.CircularProgressIndicator
+        android:id="@+id/scanProgressBar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:visibility="gone"
+        app:indicatorSize="64dp"
+        app:layout_constraintBottom_toBottomOf="@id/mapImageView"
+        app:layout_constraintEnd_toEndOf="@id/mapImageView"
+        app:layout_constraintStart_toStartOf="@id/mapImageView"
+        app:layout_constraintTop_toTopOf="@id/mapImageView"
+        app:trackThickness="6dp" />
+
+    <FrameLayout
+        android:id="@+id/projectOperationOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#99000000"
+        android:clickable="true"
+        android:focusable="true"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="24dp"
+            app:cardBackgroundColor="?attr/colorSurface">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:minWidth="260dp"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/projectOperationProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:indeterminate="true"
+                    app:indicatorSize="48dp"
+                    app:trackThickness="5dp" />
+
+                <TextView
+                    android:id="@+id/projectOperationText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:accessibilityLiveRegion="assertive"
+                    android:gravity="center"
+                    android:textAppearance="@style/TextAppearance.Material3.BodyLarge" />
+
+                <LinearLayout
+                    android:id="@+id/projectOperationErrorActions"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:visibility="gone">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/closeProjectButton"
+                        style="@style/Widget.Material3.Button.TextButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:text="@string/action_back_projects" />
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/retryProjectButton"
+                        android:layout_width="wrap_content"
+                        android:layout_height="48dp"
+                        android:layout_marginStart="8dp"
+                        android:text="@string/action_retry" />
+                </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+    </FrameLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

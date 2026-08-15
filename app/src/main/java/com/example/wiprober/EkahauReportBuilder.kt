@@ -1,6 +1,5 @@
 package com.example.wiprober
 
-import java.util.UUID
 import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -24,11 +23,25 @@ data class EkahauReport(
     val pictureNotes: EsxPictureNotesWrapper
 )
 
+data class EkahauFloorInput(
+    val name: String,
+    val mapInfo: MapInfo,
+    val metersPerUnit: Double?,
+    val scanPoints: List<ScanPoint>,
+    val continuousSessions: List<ContinuousScanSession>,
+    val notes: List<AppNote>,
+    val floorPlanId: String? = null,
+    val imageId: String? = null
+)
+
 /**
  * Класс-"фабрика", отвечающий за преобразование "сырых" данных сканирования,
  * собранных в приложении, в сложную, взаимосвязанную структуру данных формата Ekahau.
  */
-class EkahauReportBuilder {
+class EkahauReportBuilder(
+    private val clock: MillisClock = SystemMillisClock,
+    private val idSource: IdSource = UuidIdSource
+) {
 
     /**
      * Основной метод, который собирает полный отчет в формате Ekahau.
@@ -44,39 +57,61 @@ class EkahauReportBuilder {
         mapInfo: MapInfo,
         metersPerUnit: Double?,
         notes: List<AppNote>
-    ): EkahauReport {
-        // --- 1. ПЛАН ЭТАЖА И ИЗОБРАЖЕНИЕ ---
-        val imageId = UUID.randomUUID().toString()
-        val mapWidth = mapInfo.width.toDouble()
-        val mapHeight = mapInfo.height.toDouble()
-
-        val floorPlan = EsxFloorPlan(
-            name = mapInfo.fileName.substringBeforeLast('.'),
-            width = mapWidth, height = mapHeight, imageId = imageId,
-            metersPerUnit = metersPerUnit ?: 0.025,
-            cropMaxX = mapWidth, cropMaxY = mapHeight
+    ): EkahauReport = build(
+        projectName = "Survey from ${mapInfo.fileName.substringBeforeLast('.')}",
+        floors = listOf(
+            EkahauFloorInput(
+                name = mapInfo.fileName.substringBeforeLast('.'),
+                mapInfo = mapInfo,
+                metersPerUnit = metersPerUnit,
+                scanPoints = scanPoints,
+                continuousSessions = continuousSessions,
+                notes = notes
+            )
         )
-        val floorPlansWrapper = EsxFloorPlansWrapper(listOf(floorPlan))
+    )
 
-        val image = EsxImage(
-            id = imageId,
-            imageFormat = mapInfo.fileName.substringAfterLast('.', "JPEG").uppercase(Locale.ROOT),
-            resolutionWidth = mapWidth,
-            resolutionHeight = mapHeight
-        )
+    fun build(projectName: String, floors: List<EkahauFloorInput>): EkahauReport {
+        require(floors.isNotEmpty()) { "Cannot export a project without floor plans" }
+        val floorContexts = floors.map { floor ->
+            val imageId = floor.imageId ?: newEsxId()
+            val width = floor.mapInfo.width.toDouble()
+            val height = floor.mapInfo.height.toDouble()
+            FloorContext(
+                input = floor,
+                floorPlan = EsxFloorPlan(
+                    id = floor.floorPlanId ?: newEsxId(),
+                    name = floor.name,
+                    width = width,
+                    height = height,
+                    imageId = imageId,
+                    metersPerUnit = floor.metersPerUnit ?: 0.025,
+                    cropMaxX = width,
+                    cropMaxY = height
+                ),
+                image = EsxImage(
+                    id = imageId,
+                    imageFormat = floor.mapInfo.fileName.substringAfterLast('.', "JPEG")
+                        .uppercase(Locale.ROOT),
+                    resolutionWidth = width,
+                    resolutionHeight = height
+                )
+            )
+        }
+        val floorPlansWrapper = EsxFloorPlansWrapper(floorContexts.map(FloorContext::floorPlan))
 
         // --- 2. СБОР ВСЕХ УНИКАЛЬНЫХ СЕТЕЙ (из Stop&Go И из Continuous) ---
         val apMap = mutableMapOf<String, EsxAccessPointMeasurement>()
 
         // Собираем из Stop-and-Go
-        scanPoints.forEach { scanPoint ->
-            scanPoint.wifiNetworks.forEach { network -> addNetworkToMap(apMap, network) }
-        }
-
-        // Собираем из Continuous
-        continuousSessions.forEach { session ->
-            session.scanResults.forEach { scanResult ->
-                scanResult.wifiNetworks.forEach { network -> addNetworkToMap(apMap, network) }
+        floors.forEach { floor ->
+            floor.scanPoints.forEach { scanPoint ->
+                scanPoint.wifiNetworks.forEach { network -> addNetworkToMap(apMap, network) }
+            }
+            floor.continuousSessions.forEach { session ->
+                session.scanResults.forEach { scanResult ->
+                    scanResult.wifiNetworks.forEach { network -> addNetworkToMap(apMap, network) }
+                }
             }
         }
 
@@ -92,10 +127,11 @@ class EkahauReportBuilder {
             val nameSuffix = if (macParts.size >= 6) "${macParts[4]}:${macParts[5]}" else measurement.mac.replace(":", "")
             val apName = "Measured AP-$nameSuffix"
 
-            val accessPoint = EsxAccessPoint(name = apName)
+            val accessPoint = EsxAccessPoint(id = newEsxId(), name = apName)
             accessPointsList.add(accessPoint)
 
             val measuredRadio = EsxMeasuredRadio(
+                id = newEsxId(),
                 accessPointId = accessPoint.id,
                 accessPointMeasurementIds = listOf(measurement.id)
             )
@@ -109,15 +145,115 @@ class EkahauReportBuilder {
         val surveysMap = mutableMapOf<String, EsxSurveysWrapper>()
         val binaryDataMap = mutableMapOf<String, ByteArray>()
 
-        // А. Обработка стандартных точек (Stop-and-Go)
-        scanPoints.forEach { scanPoint ->
-            val orderedApIds = scanPoint.wifiNetworks.mapNotNull { network -> apMap[network.bssid]?.id }
+        floorContexts.forEach { floorContext ->
+            addFloorSurveys(
+                floorContext,
+                apMap,
+                surveyLookups,
+                surveysMap,
+                binaryDataMap
+            )
+        }
+
+        val surveyLookupsWrapper = EsxSurveyLookupsWrapper(surveyLookups)
+
+        // --- 5. ПРОЕКТ, ИСТОРИЯ, ЗАМЕТКИ ---
+        val thumbnail = EsxThumbnail(dataFloorPlanId = floorContexts.first().floorPlan.id)
+        val generatedAt = getCurrentUtcTime()
+        val project = EsxProject(
+            id = newEsxId(),
+            name = projectName,
+            title = projectName,
+            thumbnail = thumbnail,
+            history = EsxHistory(modifiedAt = generatedAt, createdAt = generatedAt)
+        )
+        val projectWrapper = EsxProjectWrapper(project)
+
+        val projectHistoryEntry = EsxProjectHistoryEntry(
+            id = newEsxId(),
+            projectId = project.id,
+            projectName = project.name,
+            timestamp = generatedAt.replace("Z", "+0000")
+        )
+        val projectHistorysWrapper = EsxProjectHistorysWrapper(listOf(projectHistoryEntry))
+
+        val esxNotes = mutableListOf<EsxNote>()
+        val esxPictureNotes = mutableListOf<EsxPictureNote>()
+        val esxImagesForNotes = mutableListOf<EsxImage>()
+        val usedNoteIds = mutableSetOf<String>()
+        val usedPictureNoteIds = mutableSetOf<String>()
+        val usedPhotoIds = mutableSetOf<String>()
+
+        floorContexts.forEach { floorContext ->
+            floorContext.input.notes.forEach { appNote ->
+                require(usedNoteIds.add(appNote.id)) { "Duplicate note ID across floor plans" }
+                require(usedPictureNoteIds.add(appNote.pictureNoteId)) {
+                    "Duplicate picture-note ID across floor plans"
+                }
+                val photoId = appNote.photoId
+                if (photoId != null) require(usedPhotoIds.add(photoId)) {
+                    "Duplicate note image ID across floor plans"
+                }
+                esxNotes += EsxNote(
+                    id = appNote.id,
+                    text = appNote.text,
+                    imageIds = photoId?.let(::listOf).orEmpty(),
+                    history = EsxSurveyHistory(createdAt = getCurrentUtcTime())
+                )
+                esxPictureNotes += EsxPictureNote(
+                    id = appNote.pictureNoteId,
+                    location = EsxNoteLocation(
+                        floorPlanId = floorContext.floorPlan.id,
+                        coord = Location(appNote.x.toDouble(), appNote.y.toDouble())
+                    ),
+                    noteIds = listOf(appNote.id)
+                )
+                if (photoId != null) {
+                    esxImagesForNotes += EsxImage(
+                        id = photoId,
+                        imageFormat = appNote.photoFormat ?: "JPEG",
+                        resolutionWidth = appNote.photoWidth?.toDouble() ?: 0.0,
+                        resolutionHeight = appNote.photoHeight?.toDouble() ?: 0.0
+                    )
+                }
+            }
+        }
+
+        return EkahauReport(
+            project = projectWrapper,
+            floorPlans = floorPlansWrapper,
+            accessPointMeasurements = accessPointMeasurementsWrapper,
+            surveyLookups = surveyLookupsWrapper,
+            surveys = surveysMap,
+            binaryData = binaryDataMap,
+            projectHistorys = projectHistorysWrapper,
+            images = EsxImagesWrapper(floorContexts.map(FloorContext::image) + esxImagesForNotes),
+            accessPoints = accessPointsWrapper,
+            measuredRadios = measuredRadiosWrapper,
+            notes = EsxNotesWrapper(esxNotes),
+            pictureNotes = EsxPictureNotesWrapper(esxPictureNotes)
+        )
+    }
+
+    private fun addFloorSurveys(
+        floorContext: FloorContext,
+        apMap: Map<String, EsxAccessPointMeasurement>,
+        surveyLookups: MutableList<EsxSurveyLookup>,
+        surveysMap: MutableMap<String, EsxSurveysWrapper>,
+        binaryDataMap: MutableMap<String, ByteArray>
+    ) {
+        val floorPlan = floorContext.floorPlan
+        floorContext.input.scanPoints.forEach { scanPoint ->
+            val orderedApIds = scanPoint.wifiNetworks
+                .mapNotNull { network -> apMap[networkKey(network.bssid)]?.id }
+                .distinct()
+            val apIndexById = orderedApIds.withIndex().associate { it.value to it.index }
             val measurementsForBin = mutableListOf<BinaryDataSerializer.MeasurementEntry>()
 
             scanPoint.wifiNetworks.forEach { network ->
-                apMap[network.bssid]?.id?.let { apId ->
-                    val index = orderedApIds.indexOf(apId)
-                    if (index != -1) {
+                apMap[networkKey(network.bssid)]?.id?.let { apId ->
+                    val index = apIndexById[apId]
+                    if (index != null) {
                         // Для Stop-and-Go Timestamp всегда 1
                         measurementsForBin.add(BinaryDataSerializer.MeasurementEntry(1, index, network))
                     }
@@ -130,7 +266,7 @@ class EkahauReportBuilder {
             val routePoints = listOf(listOf(RoutePoint(1000000L, location), RoutePoint(5002000000L, location)))
             val scannings = listOf(Scanning(1000000L, 3971000000L)) // ~4 сек
 
-            val trackId = UUID.randomUUID().toString()
+            val trackId = newEsxId()
             val wifiTrack = WifiTrack(
                 accessPointMeasurementIds = orderedApIds,
                 scannings = scannings,
@@ -145,6 +281,7 @@ class EkahauReportBuilder {
             val surveyName = "${nameFormatter.format(surveyDate)}-SG-${scanPoint.timestamp % 1000}"
 
             val survey = EsxSurvey(
+                id = newEsxId(),
                 floorPlanId = floorPlan.id,
                 name = surveyName,
                 startTime = surveyStartTime,
@@ -154,13 +291,18 @@ class EkahauReportBuilder {
                 routeType = "STOP_AND_GO"
             )
 
-            surveyLookups.add(EsxSurveyLookup(surveyId = survey.id, floorPlanId = floorPlan.id))
+            surveyLookups.add(
+                EsxSurveyLookup(
+                    id = newEsxId(),
+                    surveyId = survey.id,
+                    floorPlanId = floorPlan.id
+                )
+            )
             surveysMap[survey.id] = EsxSurveysWrapper(listOf(survey))
             binaryDataMap[trackId] = BinaryDataSerializer.serialize(measurementsForBin)
         }
 
-        // Б. Обработка Continuous сессий
-        continuousSessions.forEach { session ->
+        floorContext.input.continuousSessions.forEach { session ->
             val surveyId = session.id
             val startTimeData = Date(session.startTime)
             val totalDurationMs = if (session.endTime > session.startTime) session.endTime - session.startTime else 1000L
@@ -168,9 +310,10 @@ class EkahauReportBuilder {
             // 1. Собираем уникальные AP ID для заголовка трека
             val uniqueApIdsInTrack = mutableSetOf<String>()
             session.scanResults.forEach { scan ->
-                scan.wifiNetworks.forEach { net -> apMap[net.bssid]?.id?.let { uniqueApIdsInTrack.add(it) } }
+                scan.wifiNetworks.forEach { net -> apMap[networkKey(net.bssid)]?.id?.let { uniqueApIdsInTrack.add(it) } }
             }
             val orderedApIds = uniqueApIdsInTrack.toList()
+            val apIndexById = orderedApIds.withIndex().associate { it.value to it.index }
 
             // 2. Готовим данные для бинарника
             val measurementsForBin = mutableListOf<BinaryDataSerializer.MeasurementEntry>()
@@ -183,12 +326,16 @@ class EkahauReportBuilder {
                 val relStartTime = scan.timestamp - scan.duration
 
                 // Защита от отрицательных чисел и перевод в Int (мс)
-                val relTimeMillis = if (relStartTime < 0) 0 else relStartTime.toInt()
+                val nonNegativeStartTime = relStartTime.coerceAtLeast(0L)
+                require(nonNegativeStartTime <= Int.MAX_VALUE) {
+                    "Continuous survey is too long for the ESX binary track format"
+                }
+                val relTimeMillis = nonNegativeStartTime.toInt()
 
                 scan.wifiNetworks.forEach { net ->
-                    apMap[net.bssid]?.id?.let { apId ->
-                        val idx = orderedApIds.indexOf(apId)
-                        if (idx != -1) {
+                    apMap[networkKey(net.bssid)]?.id?.let { apId ->
+                        val idx = apIndexById[apId]
+                        if (idx != null) {
                             measurementsForBin.add(BinaryDataSerializer.MeasurementEntry(relTimeMillis, idx, net))
                         }
                     }
@@ -201,23 +348,23 @@ class EkahauReportBuilder {
             // 3. Формируем RoutePoints (Путь) - время в наносекундах!
             val routePointsList = session.waypoints.map { wp ->
                 RoutePoint(
-                    time = wp.timestamp * 1000000L, // ms -> ns
+                    time = millisecondsToNanoseconds(wp.timestamp),
                     location = Location(wp.x.toDouble(), wp.y.toDouble())
                 )
             }
 
             // 4. Формируем Scannings (Интервалы работы радио) - время в наносекундах
             val scanningsList = session.scanResults.map { scan ->
-                val endNs = scan.timestamp * 1000000L
-                val startNs = (scan.timestamp - scan.duration) * 1000000L
+                val endNs = millisecondsToNanoseconds(scan.timestamp)
+                val startNs = millisecondsToNanoseconds((scan.timestamp - scan.duration).coerceAtLeast(0L))
                 Scanning(
-                    startTime = if (startNs < 0) 0 else startNs,
+                    startTime = startNs,
                     endTime = endNs
                 )
             }
 
             // 5. Создаем Survey объект
-            val trackId = UUID.randomUUID().toString()
+            val trackId = newEsxId()
             val wifiTrack = WifiTrack(
                 accessPointMeasurementIds = orderedApIds,
                 scannings = scanningsList,
@@ -234,105 +381,71 @@ class EkahauReportBuilder {
                 floorPlanId = floorPlan.id,
                 name = surveyName,
                 startTime = surveyStartTime,
-                duration = totalDurationMs * 1000000L,
+                duration = millisecondsToNanoseconds(totalDurationMs),
                 routePoints = listOf(routePointsList),
                 wifiTracks = listOf(wifiTrack),
                 history = EsxSurveyHistory(createdAt = surveyStartTime),
                 routeType = "CONTINUOUS"
             )
 
-            surveyLookups.add(EsxSurveyLookup(surveyId = survey.id, floorPlanId = floorPlan.id))
+            surveyLookups.add(
+                EsxSurveyLookup(
+                    id = newEsxId(),
+                    surveyId = survey.id,
+                    floorPlanId = floorPlan.id
+                )
+            )
             surveysMap[survey.id] = EsxSurveysWrapper(listOf(survey))
             binaryDataMap[trackId] = BinaryDataSerializer.serialize(measurementsForBin)
         }
 
-        val surveyLookupsWrapper = EsxSurveyLookupsWrapper(surveyLookups)
-
-        // --- 5. ПРОЕКТ, ИСТОРИЯ, ЗАМЕТКИ ---
-        val projectName = "Survey from ${mapInfo.fileName.substringBeforeLast('.')}"
-        val thumbnail = EsxThumbnail(dataFloorPlanId = floorPlan.id)
-        val project = EsxProject(name = projectName, title = projectName, thumbnail = thumbnail)
-        val projectWrapper = EsxProjectWrapper(project)
-
-        val projectHistoryEntry = EsxProjectHistoryEntry(projectId = project.id, projectName = project.name)
-        val projectHistorysWrapper = EsxProjectHistorysWrapper(listOf(projectHistoryEntry))
-
-        // Генерация заметок
-        val esxNotes = mutableListOf<EsxNote>()
-        val esxPictureNotes = mutableListOf<EsxPictureNote>()
-        val esxImagesForNotes = mutableListOf<EsxImage>()
-
-        notes.forEach { appNote ->
-            val imageIdList = if (appNote.photoId != null) listOf(appNote.photoId) else emptyList()
-            val esxNote = EsxNote(
-                id = appNote.id,
-                text = appNote.text,
-                imageIds = imageIdList,
-                history = EsxSurveyHistory(createdAt = getCurrentUtcTime())
-            )
-            esxNotes.add(esxNote)
-
-            val esxPictureNote = EsxPictureNote(
-                id = appNote.pictureNoteId,
-                location = EsxNoteLocation(
-                    floorPlanId = floorPlan.id,
-                    coord = Location(x = appNote.x.toDouble(), y = appNote.y.toDouble())
-                ),
-                noteIds = listOf(appNote.id)
-            )
-            esxPictureNotes.add(esxPictureNote)
-
-            if (appNote.photoId != null) {
-                val noteImage = EsxImage(
-                    id = appNote.photoId,
-                    imageFormat = "JPEG",
-                    resolutionWidth = appNote.photoWidth?.toDouble() ?: 0.0,
-                    resolutionHeight = appNote.photoHeight?.toDouble() ?: 0.0
-                )
-                esxImagesForNotes.add(noteImage)
-            }
-        }
-
-        val allImages = mutableListOf(image)
-        allImages.addAll(esxImagesForNotes)
-        val finalImagesWrapper = EsxImagesWrapper(allImages)
-
-        val notesWrapper = EsxNotesWrapper(esxNotes)
-        val pictureNotesWrapper = EsxPictureNotesWrapper(esxPictureNotes)
-
-        return EkahauReport(
-            project = projectWrapper,
-            floorPlans = floorPlansWrapper,
-            accessPointMeasurements = accessPointMeasurementsWrapper,
-            surveyLookups = surveyLookupsWrapper,
-            surveys = surveysMap,
-            binaryData = binaryDataMap,
-            projectHistorys = projectHistorysWrapper,
-            images = finalImagesWrapper,
-            accessPoints = accessPointsWrapper,
-            measuredRadios = measuredRadiosWrapper,
-            notes = notesWrapper,
-            pictureNotes = pictureNotesWrapper
-        )
     }
 
     // --- Helpers ---
 
     private fun addNetworkToMap(map: MutableMap<String, EsxAccessPointMeasurement>, network: WifiNetworkInfo) {
-        if (!map.containsKey(network.bssid)) {
-            map[network.bssid] = EsxAccessPointMeasurement(
-                mac = network.bssid,
+        val key = networkKey(network.bssid)
+        val existing = map[key]
+        if (existing == null) {
+            map[key] = EsxAccessPointMeasurement(
+                id = newEsxId(),
+                mac = key,
                 ssid = network.ssid,
                 channels = listOf(network.frequency),
                 security = network.security,
                 technologies = network.technologies,
                 informationElements = network.informationElements
             )
+        } else {
+            map[key] = existing.copy(
+                ssid = existing.ssid.takeUnless { it.isBlank() || it == "<unknown ssid>" } ?: network.ssid,
+                channels = (existing.channels + network.frequency).distinct().sorted(),
+                security = existing.security.takeUnless { it == "Unknown" } ?: network.security,
+                technologies = (existing.technologies + network.technologies).distinct().sorted(),
+                informationElements = existing.informationElements.ifBlank { network.informationElements }
+            )
         }
     }
 
+    private fun networkKey(bssid: String): String {
+        val hex = bssid.trim().replace(":", "").replace("-", "").uppercase(Locale.ROOT)
+        require(hex.length == 12 && hex.all { it in '0'..'9' || it in 'A'..'F' }) {
+            "Invalid Wi-Fi BSSID"
+        }
+        return hex.chunked(2).joinToString(":")
+    }
+
+    private fun newEsxId(): String = idSource.newId().also {
+        require(EsxIdFactory.isUuid(it)) { "Generated ESX ID is not a UUID" }
+    }
+
+    private fun millisecondsToNanoseconds(milliseconds: Long): Long {
+        require(milliseconds >= 0L) { "ESX relative time must be non-negative" }
+        return Math.multiplyExact(milliseconds, 1_000_000L)
+    }
+
     private fun getCurrentUtcTime(): String {
-        return getCurrentUtcTimeFromDate(Date())
+        return getCurrentUtcTimeFromDate(Date(clock.now()))
     }
 
     private fun getCurrentUtcTimeFromDate(date: Date): String {
@@ -340,4 +453,10 @@ class EkahauReportBuilder {
         sdf.timeZone = TimeZone.getTimeZone("UTC")
         return sdf.format(date)
     }
+
+    private data class FloorContext(
+        val input: EkahauFloorInput,
+        val floorPlan: EsxFloorPlan,
+        val image: EsxImage
+    )
 }
