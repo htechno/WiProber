@@ -689,7 +689,7 @@ class SurveyActivity : AppCompatActivity() {
                 }
 
                 val attemptStartedAt = viewModel.beginContinuousScanAttempt() ?: break
-                when (val outcome = wifiScanner.scan(WifiScanRequest(WifiScanKind.CONTINUOUS))) {
+                when (val outcome = wifiScanner.scan()) {
                     is WifiScanOutcome.Success -> {
                         val wifiInfoList = mapScanResults(outcome.results)
                         if (!viewModel.completeContinuousScanAttempt(
@@ -771,7 +771,7 @@ class SurveyActivity : AppCompatActivity() {
         updateButtonStates()
         binding.scanProgressBar.visibility = View.VISIBLE
         val scanJob = lifecycleScope.launch {
-            when (val outcome = wifiScanner.scan(WifiScanRequest(WifiScanKind.STOP_AND_GO))) {
+            when (val outcome = wifiScanner.scan()) {
                 is WifiScanOutcome.Success -> {
                     val wifiInfoList = mapScanResults(outcome.results)
                     viewModel.completeStopAndGoScan(wifiInfoList)
@@ -1015,33 +1015,27 @@ class SurveyActivity : AppCompatActivity() {
     }
 
     private fun getWifiTechnologies(scanResult: android.net.wifi.ScanResult): List<String> {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return WifiTechnologyMapper.map(scanResult.wifiStandard, scanResult.frequency)
-        }
-        return emptyList()
+        return WifiTechnologyMapper.map(scanResult.wifiStandard, scanResult.frequency)
     }
 
     private fun getInformationElementsAsBase64(scanResult: android.net.wifi.ScanResult): String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            val informationElements = scanResult.informationElements ?: return ""
-            val fullIEsBuffer = java.nio.ByteBuffer.allocate(512)
-            informationElements.forEach { ie ->
-                val valueByteArray = ByteArray(ie.bytes.remaining()).also { ie.bytes.get(it) }
-                if (fullIEsBuffer.remaining() >= 2 + valueByteArray.size) {
-                    fullIEsBuffer.put(ie.id.toByte())
-                    fullIEsBuffer.put(valueByteArray.size.toByte())
-                    fullIEsBuffer.put(valueByteArray)
-                } else {
-                    Log.w("IE_Builder", "Full IE buffer")
-                    return@forEach
-                }
+        val informationElements = scanResult.informationElements ?: return ""
+        val fullIEsBuffer = java.nio.ByteBuffer.allocate(512)
+        informationElements.forEach { ie ->
+            val valueByteArray = ByteArray(ie.bytes.remaining()).also { ie.bytes.get(it) }
+            if (fullIEsBuffer.remaining() >= 2 + valueByteArray.size) {
+                fullIEsBuffer.put(ie.id.toByte())
+                fullIEsBuffer.put(valueByteArray.size.toByte())
+                fullIEsBuffer.put(valueByteArray)
+            } else {
+                Log.w("IE_Builder", "Full IE buffer")
+                return@forEach
             }
-            val finalByteArray = ByteArray(fullIEsBuffer.position()).also {
-                fullIEsBuffer.rewind(); fullIEsBuffer.get(it)
-            }
-            return java.util.Base64.getEncoder().encodeToString(finalByteArray)
         }
-        return ""
+        val finalByteArray = ByteArray(fullIEsBuffer.position()).also {
+            fullIEsBuffer.rewind(); fullIEsBuffer.get(it)
+        }
+        return java.util.Base64.getEncoder().encodeToString(finalByteArray)
     }
 
     private fun readNoteImageMetadata(uri: Uri): NoteImageMetadata {
