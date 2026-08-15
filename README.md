@@ -39,13 +39,13 @@ This is a non-commercial, open-source project. Please be aware of the following 
 *   **No "My Networks" Detection:** The app currently does not automatically identify or flag your own networks ("My Networks"). This must be done manually within Ekahau Pro after import.
 *   **No AP Merging:** WiProber creates a new, separate access point (`accessPoints.json`) for every unique BSSID found. It does not attempt to group multiple radios (e.g., 2.4-GHz and 5-GHz radios) under a single physical access point device. This grouping should be performed manually in Ekahau.
 *   **ESX Editing Scope:** WiProber does not display or edit imported RSSI/frequency/spectrum measurements, walls, requirements, or AP grouping. Schema-v3 projects preserve those source entries unchanged and add new WiProber survey data alongside them. New projects still contain the supported WiProber-generated subset. Projects imported by older schema-v2 builds must be re-imported from their original ESX to gain source-preservation guarantees.
-*   **Legacy Android Data:** On devices running Android 10 (API 29) or older, the app is unable to collect raw Information Elements (IEs) due to OS limitations.
+*   **Android Version:** WiProber v3 requires Android 11 (API 30) or newer. Android 10 and older devices cannot install or update to v3. Public beacon Information Elements and `wifiStandard` are part of the v3 scan baseline, although the exact IE set still depends on the device chipset and driver.
 
 ## Getting Started
 
 ### Prerequisites
 *   Android Studio (latest version recommended)
-*   An Android device with Android 9 (Pie, API 28) or higher.
+*   An Android device with Android 11 (API 30) or higher.
 
 ### Building and Running
 1.  Clone the repository: `git clone https://github.com/htechno/WiProber.git`

@@ -201,10 +201,23 @@ Verification recorded on 2026-08-15:
 
 ## Stage 5 — minimum Android version and richer Wi-Fi metadata
 
-- Keep `minSdk = 28` through Stages 3 and 4; do not drop Android 9 or Android 10 support as part of the current refactoring.
-- Inventory the real deployment-device/API distribution before proposing a new minimum supported Android version.
-- Re-evaluate `minSdk = 30` as the first meaningful Wi-Fi data boundary: public beacon Information Elements, `wifiStandard`, scan-results callbacks, scan-throttling state, and 6 GHz capability become uniformly available.
-- Re-evaluate `minSdk = 33` only for a controlled Android 13+ device fleet, where raw SSID bytes, structured security types, Wi-Fi 7/MLO, and 320 MHz metadata can become part of the baseline contract.
-- Design richer scan metadata so newer APIs can be used opportunistically without weakening the Android 9/10 fallback: ordered `id`/`idExt` Information Elements, channel width and center frequencies, scan timestamp, band/channel, security types, and MLO identity.
-- Separately fix bounded, extension-aware Information Element preservation; never treat an OS upgrade as proof that every chipset/driver exposes a complete beacon frame.
-- Make any `minSdk` increase a separate product decision with an explicit compatibility matrix, device tests at the proposed minimum API, migration notes, and user approval.
+- [x] Keep `minSdk = 28` through Stages 3 and 4; the earlier stages did not silently drop Android 9 or Android 10 support.
+- [x] Make Android 11/API 30 the explicitly approved v3 minimum and document that Android 10 and older devices cannot install or update to v3.
+- [x] Establish public beacon Information Elements, `wifiStandard`, scan-availability broadcasts, and scan-throttling state as supported baseline APIs.
+- [x] Remove unreachable API 28/29 behavior: the legacy Wi-Fi Settings intent, hidden global throttling lookup, Android 9 disconnect/delay scan path, and mode data that existed only for that disconnect path.
+- [x] Keep the Android 13+ receiver and raw-SSID branches conditional; raising the minimum to API 30 must not pretend later APIs are universal.
+- [x] Close the former physical API 28/API 29 release matrix as superseded by the approved minimum-version decision, without claiming those unexecuted tests passed.
+- [ ] Validate install, permission denial/retry, Wi-Fi enable panel, Location Services requirement, scan availability, throttling state, Stop-and-Go, and Continuous mode on a physical API 30 device.
+- [ ] Inventory the real deployment-device/API distribution before considering another minimum-version increase.
+- [ ] Re-evaluate `minSdk = 33` only for a controlled Android 13+ device fleet, where raw SSID bytes, structured security types, Wi-Fi 7/MLO, and 320 MHz metadata can become part of the baseline contract.
+- [ ] Design richer scan metadata using newer APIs opportunistically: ordered `id`/`idExt` Information Elements, channel width and center frequencies, scan timestamp, band/channel, security types, and MLO identity.
+- [ ] Separately fix bounded, extension-aware Information Element preservation; never treat an OS upgrade as proof that every chipset/driver exposes a complete beacon frame.
+
+**Acceptance gate:** automated checks and a physical Android 11/API 30 scan matrix are required before merging this branch into the private v3 `main`.
+
+Verification recorded on 2026-08-15:
+
+- the full JVM unit suite, `lintDebug`, debug APK, and androidTest APK passed;
+- the packaged debug APK reports `minSdkVersion = 30` and `targetSdkVersion = 36`;
+- two focused scanner instrumentation tests passed on the connected Android 16/API 36 phone, including lifecycle cancellation/re-registration and a real fresh scan;
+- the physical Android 11/API 30 compatibility matrix remains open and is not implied by the newer-device result.

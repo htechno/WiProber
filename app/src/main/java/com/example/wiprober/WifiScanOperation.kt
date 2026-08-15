@@ -49,18 +49,6 @@ internal class WifiScanOperationTracker(
         }
     }
 
-    /**
-     * Android 10+ reports full scans initiated by the platform or other apps. A negative
-     * broadcast cannot be correlated to our request there, so the owned request times out.
-     */
-    fun acceptFailedBroadcast(sdkInt: Int): WifiScanBroadcastDecision {
-        val operation = active ?: return WifiScanBroadcastDecision.Ignored
-        if (operation.requestedAtMicros == null || sdkInt >= ANDROID_10_API) {
-            return WifiScanBroadcastDecision.Ignored
-        }
-        return WifiScanBroadcastDecision.Accepted(operation.id)
-    }
-
     fun activeOperationId(): Long? = active?.id
 
     fun isSystemScanRequested(operationId: Long): Boolean =
@@ -77,10 +65,6 @@ internal class WifiScanOperationTracker(
         val baselineNewestResultMicros: Long?,
         val requestedAtMicros: Long? = null
     )
-
-    private companion object {
-        const val ANDROID_10_API = 29
-    }
 }
 
 internal sealed interface WifiScanBroadcastDecision {

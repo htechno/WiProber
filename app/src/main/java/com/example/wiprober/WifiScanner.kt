@@ -22,13 +22,6 @@ import kotlin.coroutines.resume
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-internal enum class WifiScanKind {
-    STOP_AND_GO,
-    CONTINUOUS
-}
-
-internal data class WifiScanRequest(val kind: WifiScanKind)
-
 internal enum class WifiScanFailureReason {
     SCANNER_NOT_STARTED,
     SCANNER_CLOSED,
@@ -69,14 +62,14 @@ internal sealed interface WifiScanOutcome {
 /**
  * Owns one Activity-scoped Wi-Fi scan at a time.
  *
- * Android 10+ scan broadcasts may describe scans started by the platform or another app.
+ * On supported Android 11+ devices, scan broadcasts may describe scans started by the
+ * platform or another app.
  * The operation tracker therefore accepts only a result set that is newer than the one
  * captured before this request and whose newest timestamp belongs to this request window.
  */
 internal class WifiScanner(
     context: Context,
     lifecycle: Lifecycle? = null,
-    private val sdkInt: Int = Build.VERSION.SDK_INT,
     private val mainHandler: Handler = Handler(Looper.getMainLooper()),
     private val elapsedRealtimeMicros: () -> Long = {
         SystemClock.elapsedRealtimeNanos() / NANOS_PER_MICROSECOND
@@ -119,9 +112,7 @@ internal class WifiScanner(
             val intentFilter = IntentFilter().apply {
                 addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION)
                 addAction(WifiManager.WIFI_STATE_CHANGED_ACTION)
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    addAction(WifiManager.ACTION_WIFI_SCAN_AVAILABILITY_CHANGED)
-                }
+                addAction(WifiManager.ACTION_WIFI_SCAN_AVAILABILITY_CHANGED)
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                 applicationContext.registerReceiver(
@@ -175,7 +166,7 @@ internal class WifiScanner(
         completion?.resume()
     }
 
-    suspend fun scan(request: WifiScanRequest): WifiScanOutcome =
+    suspend fun scan(): WifiScanOutcome =
         suspendCancellableCoroutine { continuation ->
             val immediateOutcome = synchronized(lock) {
                 when {
@@ -216,7 +207,7 @@ internal class WifiScanner(
                                 )
                             } else {
                                 activeContinuation = continuation
-                                scheduleScanRequestLocked(operationId, request)
+                                scheduleScanRequestLocked(operationId)
                                 null
                             }
                         } catch (securityException: SecurityException) {
@@ -252,19 +243,10 @@ internal class WifiScanner(
             }
         }
 
-    private fun scheduleScanRequestLocked(operationId: Long, request: WifiScanRequest) {
+    private fun scheduleScanRequestLocked(operationId: Long) {
         val requestRunnable = Runnable { requestSystemScan(operationId) }
         activeRequestRunnable = requestRunnable
-        val shouldDisconnect =
-            request.kind == WifiScanKind.STOP_AND_GO &&
-                Build.VERSION.SDK_INT <= Build.VERSION_CODES.P
-        if (shouldDisconnect) {
-            @Suppress("DEPRECATION")
-            wifiManager.disconnect()
-            mainHandler.postDelayed(requestRunnable, DISCONNECT_DELAY_MILLIS)
-        } else {
-            mainHandler.post(requestRunnable)
-        }
+        mainHandler.post(requestRunnable)
     }
 
     private fun requestSystemScan(operationId: Long) {
@@ -321,10 +303,7 @@ internal class WifiScanner(
                 if (!wifiManager.isWifiEnabled) {
                     failActiveOperation(WifiScanFailureReason.WIFI_DISABLED)
                 }
-            } else if (
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
-                intent.action == WifiManager.ACTION_WIFI_SCAN_AVAILABILITY_CHANGED
-            ) {
+            } else if (intent.action == WifiManager.ACTION_WIFI_SCAN_AVAILABILITY_CHANGED) {
                 val scanAvailable = intent.getBooleanExtra(
                     WifiManager.EXTRA_SCAN_AVAILABLE,
                     true
@@ -339,18 +318,8 @@ internal class WifiScanner(
     private fun handleScanResultsBroadcast(intent: Intent) {
         val resultsUpdated = intent.getBooleanExtra(WifiManager.EXTRA_RESULTS_UPDATED, false)
         if (!resultsUpdated) {
-            when (val decision = synchronized(lock) {
-                operationTracker.acceptFailedBroadcast(sdkInt)
-            }) {
-                WifiScanBroadcastDecision.Ignored -> Unit
-                is WifiScanBroadcastDecision.Accepted -> complete(
-                    decision.operationId,
-                    WifiScanOutcome.Failure(
-                        decision.operationId,
-                        WifiScanFailureReason.RESULTS_NOT_UPDATED
-                    )
-                )
-            }
+            // On supported Android 11+, this broadcast may belong to another scan and cannot
+            // safely terminate the owned request. Its own timeout remains authoritative.
             return
         }
 
@@ -453,7 +422,6 @@ internal class WifiScanner(
 
     private companion object {
         const val TAG = "WifiScanner"
-        const val DISCONNECT_DELAY_MILLIS = 300L
         const val SCAN_TIMEOUT_MILLIS = 15_000L
         const val NANOS_PER_MICROSECOND = 1_000L
     }

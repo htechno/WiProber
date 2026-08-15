@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.net.Uri
 import android.net.wifi.WifiManager
-import android.os.Build
 import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -82,12 +81,7 @@ internal class SurveyAndroidCoordinator(
         )
         when (requirement) {
             WifiScanAccessRequirement.ENABLE_WIFI -> {
-                val action = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    Settings.Panel.ACTION_WIFI
-                } else {
-                    Settings.ACTION_WIFI_SETTINGS
-                }
-                enableWifiLauncher.launch(Intent(action))
+                enableWifiLauncher.launch(Intent(Settings.Panel.ACTION_WIFI))
             }
 
             WifiScanAccessRequirement.GRANT_PERMISSIONS -> {
@@ -102,10 +96,7 @@ internal class SurveyAndroidCoordinator(
     fun isScanThrottlingEnabled(): Boolean {
         val wifiManager = activity.applicationContext
             .getSystemService(Context.WIFI_SERVICE) as? WifiManager ?: return true
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) return wifiManager.isScanThrottleEnabled
-        return runCatching {
-            Settings.Global.getInt(activity.contentResolver, WIFI_THROTTLE_SETTING) == 1
-        }.getOrDefault(true)
+        return wifiManager.isScanThrottleEnabled
     }
 
     fun openDeveloperSettings() {
@@ -155,7 +146,6 @@ internal class SurveyAndroidCoordinator(
 
     companion object {
         private const val ESX_MIME_TYPE = "application/vnd.ekahau.esx"
-        private const val WIFI_THROTTLE_SETTING = "wifi_scan_throttle_enabled"
     }
 }
 

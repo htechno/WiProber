@@ -70,8 +70,9 @@ When changing ESX handling, add fixture-based tests that validate JSON relations
 - Registration of a broadcast receiver must have an explicit, idempotent lifecycle and a matching unregister path.
 - Keep Stop-and-Go and Continuous pending actions distinct across permission, Wi-Fi-panel, and location-settings round trips. Resuming one mode must not accidentally invoke the other.
 - Treat scan throttling, missing/stale broadcasts, Wi-Fi state changes, denied permissions, and lifecycle cancellation as normal outcomes.
-- On Android 10+, a scan-results broadcast may belong to the platform or another app. Accept a successful broadcast only when its newest `ScanResult.timestamp` is newer than the pre-request baseline and belongs to the current request window; do not attribute an uncorrelatable negative broadcast to the active request.
-- Check permission behavior against every supported API range (`minSdk = 28`, current `targetSdk = 36`) before changing the manifest or runtime flow. Test on a real device; JVM tests cannot validate Android Wi-Fi behavior.
+- On every supported version (Android 11+), a scan-results broadcast may belong to the platform or another app. Accept a successful broadcast only when its newest `ScanResult.timestamp` is newer than the pre-request baseline and belongs to the current request window; do not attribute an uncorrelatable negative broadcast to the active request.
+- Check permission behavior against every supported API range (`minSdk = 30`, current `targetSdk = 36`) before changing the manifest or runtime flow. Test on a real device; JVM tests cannot validate Android Wi-Fi behavior.
+- `ScanResult.wifiStandard`, public beacon Information Elements, scan-availability broadcasts, and `WifiManager.isScanThrottleEnabled` are baseline APIs. Keep API guards only for capabilities introduced after Android 11.
 - Wi-Fi capabilities and standards must be mapped deliberately. Add tests/fixtures before changing WPA/WPA2/WPA3/OWE/Enterprise or 2.4/5/6 GHz classification.
 
 ## State, storage, and threading

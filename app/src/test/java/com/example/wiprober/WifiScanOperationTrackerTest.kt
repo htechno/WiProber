@@ -71,25 +71,6 @@ class WifiScanOperationTrackerTest {
     }
 
     @Test
-    fun failedBroadcastIsOwnedOnlyBeforeAndroid10() {
-        val android9Tracker = WifiScanOperationTracker()
-        val android9Operation = android9Tracker.begin(null)!!
-        android9Tracker.markSystemScanRequested(android9Operation, 1_000L)
-        assertEquals(
-            WifiScanBroadcastDecision.Accepted(android9Operation),
-            android9Tracker.acceptFailedBroadcast(sdkInt = 28)
-        )
-
-        val android10Tracker = WifiScanOperationTracker()
-        val android10Operation = android10Tracker.begin(null)!!
-        android10Tracker.markSystemScanRequested(android10Operation, 1_000L)
-        assertEquals(
-            WifiScanBroadcastDecision.Ignored,
-            android10Tracker.acceptFailedBroadcast(sdkInt = 29)
-        )
-    }
-
-    @Test
     fun oldTimeoutTokenCannotFinishNewOperation() {
         val tracker = WifiScanOperationTracker()
         val first = tracker.begin(null)!!

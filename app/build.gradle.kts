@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.wiprober"
-        minSdk = 28
+        minSdk = 30
         targetSdk = 36
         versionCode = 3
         versionName = "3.0.0-dev"

@@ -34,7 +34,7 @@ class WifiScannerInstrumentedTest {
                 scanner.start()
                 try {
                     val pending = async(start = CoroutineStart.UNDISPATCHED) {
-                        scanner.scan(WifiScanRequest(WifiScanKind.CONTINUOUS))
+                        scanner.scan()
                     }
                     assertFalse(pending.isCompleted)
 
@@ -43,7 +43,7 @@ class WifiScannerInstrumentedTest {
 
                     scanner.start()
                     val next = async(start = CoroutineStart.UNDISPATCHED) {
-                        scanner.scan(WifiScanRequest(WifiScanKind.STOP_AND_GO))
+                        scanner.scan()
                     }
                     assertFalse(next.isCompleted)
                     next.cancelAndJoin()
@@ -68,7 +68,7 @@ class WifiScannerInstrumentedTest {
             scanner.start()
             try {
                 val outcome = withTimeout(REAL_SCAN_TEST_TIMEOUT_MILLIS) {
-                    scanner.scan(WifiScanRequest(WifiScanKind.STOP_AND_GO))
+                    scanner.scan()
                 }
                 assertTrue(
                     "Expected an owned terminal result, got $outcome",
