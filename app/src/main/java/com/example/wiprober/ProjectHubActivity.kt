@@ -92,6 +92,9 @@ class ProjectHubActivity : AppCompatActivity() {
     }
 
     private fun setupActions() {
+        binding.wifiMonitorButton.setOnClickListener {
+            if (!isBusy) startActivity(Intent(this, WifiMonitorActivity::class.java))
+        }
         binding.newProjectButton.setOnClickListener {
             if (!isBusy) selectMapLauncher.launch(arrayOf("image/*"))
         }

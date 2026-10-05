@@ -22,6 +22,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WiProber">
         <activity
+            android:name=".WifiMonitorActivity"
+            android:exported="false" />
+        <activity
             android:name=".SurveyActivity"
             android:exported="false" />
         <activity

@@ -19,11 +19,25 @@
             android:paddingEnd="24dp"
             android:paddingBottom="16dp">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
         <ImageView
             android:layout_width="72dp"
             android:layout_height="72dp"
             android:importantForAccessibility="no"
             android:src="@mipmap/ic_launcher" />
+        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/wifiMonitorButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/monitor_title"
+            app:icon="@drawable/ic_wifi_monitor" />
+        </LinearLayout>
 
         <TextView
             android:layout_width="wrap_content"

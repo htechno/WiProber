@@ -15,6 +15,7 @@ This project was born out of the need for a simple, mobile-first tool for networ
 
 *   **Interactive Floor Plan:** Load any image as a floor plan, with support for zoom and pan.
 *   **Local Project Hub:** Create a project, open an ESX file, or continue one of the most recently used local projects.
+*   **Wi-Fi Scanner (experimental):** Open a standalone monitor from Project Hub with connected RSSI history, channel-width diagrams, BSSID filters, and public Android network/IE details.
 *   **Project Status and Management:** Recent projects expose explicit loading/error states and a confirmed local-delete action. The survey screen shows active-floor counts and complete-project export results.
 *   **Multi-floor Projects:** Import every supported floor from an ESX archive, switch floors while surveying, and add new named floor plans.
 *   **Two Survey Modes:**
@@ -66,6 +67,17 @@ This is a non-commercial, open-source project. Please be aware of the following 
 1.  Open or create a project.
 2.  Tap on the map to scan. A **Red Dot** will appear.
 3.  Wait for the scan to finish. Repeat.
+
+### Wi-Fi Scanner (experimental)
+1. Tap **Wi-Fi scanner** at the top right of Project Hub. No project is required.
+2. **Disable Wi-Fi scan throttling** in Developer Options. This mode is blocked until throttling is off; the setup dialog links to Developer Options.
+3. Enable Wi-Fi and Location Services, and grant **Precise location** while using the app. Scans refresh automatically while this screen is visible. **Pause** freezes scans and signal history.
+4. Expand **Channel distribution** for 2.4/5/6 GHz rectangles showing channel width and RSSI. An 80+80 MHz network occupies two rectangles. Unsupported widths or missing centre frequencies are not guessed. Filters apply to both the diagram and table.
+5. Filter by SSID substring, band, primary channel, or minimum RSSI. The table lists individual BSSIDs, strongest first; swipe horizontally for security and SSID, or tap a row for details.
+
+The connection graph samples the primary Wi-Fi connection once per second and keeps two minutes of history. Roaming, disconnects, and time spent away from the screen leave gaps. Failed scans preserve the previous results and their scan age. Scanner data stays in memory and is separate from project measurements and ESX export.
+
+Details are a snapshot of the selected result: channel centres, capabilities, standards, RTT/Passpoint flags, supported MLO metadata, and every IE supplied by Android (bounded to 512 elements / 64 KiB per BSSID). Common SSID/rates/country/BSS-load/HT/VHT/RSN/vendor fields are decoded; HE/EHT and unknown elements retain raw hex. Available fields depend on Android version and the Wi-Fi driver.
 
 ### Continuous Mode
 1.  **Disable Throttling:** Ensure "Wi-Fi scan throttling" is OFF in Developer Options.

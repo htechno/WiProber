@@ -11,6 +11,7 @@ New projects are generated as a supported Ekahau subset. Imported projects use a
 ## Current code map
 
 - `ProjectHubActivity.kt`: launcher screen for new projects, ESX import, recent local projects, unreadable-workspace status, and confirmed whole-project deletion.
+- `WifiMonitorActivity.kt`: standalone experimental Wi-Fi scanner launched from Project Hub, independent of project/survey state. `WifiMonitorAndroidCoordinator` owns its permission/settings round trips; `WifiMonitorSource` snapshots public Android Wi-Fi data; `WifiMonitorViewModel`, `WifiMonitorModels`, and `WifiIeDecoder` hold bounded history, filters, radio geometry, and defensive IE decoding. `WifiMonitorCharts`, `WifiMonitorText`, `WifiMonitorDialogs`, and `WifiNetworkAdapter` render those snapshots.
 - `CreateProjectActivity.kt`: labelled new-project form for project name, first-floor name, and the selected floor-plan preview.
 - `SurveyActivity.kt`: survey rendering and Android UI adapter. It owns PhotoView coordinate adaptation, dialogs, Wi-Fi result mapping, scan coroutine presentation, and project I/O coroutines, but not permission/settings or Activity Result registration.
 - `SurveyAndroidCoordinator.kt`: all survey Activity Result contracts plus Wi-Fi permission, Wi-Fi panel, Location Services, scan-throttling, and Developer Options coordination.
@@ -70,6 +71,7 @@ When changing ESX handling, add fixture-based tests that validate JSON relations
 - Registration of a broadcast receiver must have an explicit, idempotent lifecycle and a matching unregister path.
 - Keep Stop-and-Go and Continuous pending actions distinct across permission, Wi-Fi-panel, and location-settings round trips. Resuming one mode must not accidentally invoke the other.
 - Treat scan throttling, missing/stale broadcasts, Wi-Fi state changes, denied permissions, and lifecycle cancellation as normal outcomes.
+- The standalone Wi-Fi scanner requires scan throttling to be disabled. Show an explicit explanation and a Developer Options action; never silently fall back to slower scanning. Recheck the gate after settings changes and before each request.
 - On every supported version (Android 11+), a scan-results broadcast may belong to the platform or another app. Accept a successful broadcast only when its newest `ScanResult.timestamp` is newer than the pre-request baseline and belongs to the current request window; do not attribute an uncorrelatable negative broadcast to the active request.
 - Check permission behavior against every supported API range (`minSdk = 30`, current `targetSdk = 36`) before changing the manifest or runtime flow. Test on a real device; JVM tests cannot validate Android Wi-Fi behavior.
 - `ScanResult.wifiStandard`, public beacon Information Elements, scan-availability broadcasts, and `WifiManager.isScanThrottleEnabled` are baseline APIs. Keep API guards only for capabilities introduced after Android 11.
