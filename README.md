@@ -4,6 +4,8 @@
 
 This project was born out of the need for a simple, mobile-first tool for network engineers and enthusiasts to perform quick on-site surveys without expensive, proprietary hardware.
 
+Version **3.0.0** requires **Android 11 (API 30) or newer**. It adds a project hub, recent projects, multi-floor surveying, and ESX import that preserves original archive contents while adding new surveys.
+
 ![Screenshot of WiProber App](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_0_info.png)
 ![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_1_map.png)
 ![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_2_note.png)
