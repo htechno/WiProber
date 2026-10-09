@@ -18,6 +18,8 @@
         android:layout_marginTop="8dp"
         android:gravity="top"
         android:hint="@string/note_hint_enter_text"
+        android:importantForAutofill="no"
+        android:inputType="textCapSentences|textMultiLine"
         android:lines="3" />
 
     <Button
@@ -35,6 +37,7 @@
         android:layout_height="150dp"
         android:layout_marginTop="16dp"
         android:background="#E0E0E0"
+        android:contentDescription="@string/cd_selected_note_photo"
         android:scaleType="centerCrop"
         android:visibility="gone" />
 

@@ -1,5 +1,6 @@
 *.iml
 .gradle
+/.kotlin/
 /local.properties
 /.idea/caches
 /.idea/libraries
@@ -7,9 +8,24 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/codeStyles/
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Local/customer inputs and generated Android artifacts
+*.esx
+/WiProber_files/
+*.apk
+*.aab
+*.jks
+*.keystore
+*.pem
+
+# Local environment files
+.env
+.env.*

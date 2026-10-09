@@ -69,6 +69,7 @@ class PointsOverlayView @JvmOverloads constructor(
 
     // --- Общие свойства ---
     private var imageMatrix: Matrix? = null
+    private var coordinateMapper: ImageCoordinateMapper? = null
     private val radius = 15f
     private val noteMarkers = mutableListOf<PointF>()
     private val notePaint = Paint().apply {
@@ -77,8 +78,9 @@ class PointsOverlayView @JvmOverloads constructor(
         isAntiAlias = true
     }
 
-    fun updateMatrix(matrix: Matrix) {
-        this.imageMatrix = matrix
+    internal fun updateTransform(matrix: Matrix, coordinateMapper: ImageCoordinateMapper) {
+        this.imageMatrix = Matrix(matrix)
+        this.coordinateMapper = coordinateMapper
         invalidate()
     }
 
@@ -142,8 +144,6 @@ class PointsOverlayView @JvmOverloads constructor(
         // 1. Рисуем ЗАВЕРШЕННЫЕ треки (Зеленые)
         for (track in completedTracks) {
             drawPath(canvas, track, trackPaint, currentMatrix)
-            // Рисуем точки на поворотах
-            drawPointsFromList(canvas, track, trackPaint, currentMatrix, 8f)
         }
 
         // 2. Рисуем АКТИВНЫЙ трек (Маджента)
@@ -207,7 +207,7 @@ class PointsOverlayView @JvmOverloads constructor(
     }
 
     private fun transformPoint(x: Float, y: Float, matrix: Matrix): FloatArray {
-        val arr = floatArrayOf(x, y)
+        val arr = coordinateMapper?.sourceToDrawable(x, y) ?: floatArrayOf(x, y)
         matrix.mapPoints(arr)
         return arr
     }

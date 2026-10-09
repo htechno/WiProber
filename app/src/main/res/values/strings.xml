@@ -2,9 +2,11 @@
     <string name="app_name">WiProber</string>
 
     <!-- Buttons -->
-    <string name="btn_select_map">Select Map</string>
     <string name="btn_save_report">Save Report</string>
+    <string name="btn_export_esx">Export ESX</string>
     <string name="btn_stop_tracking">Stop Tracking</string>
+    <string name="btn_new_project">New project</string>
+    <string name="btn_open_esx">Open ESX project</string>
 
     <!-- Content Descriptions -->
     <string name="cd_map_image">Floor Plan Map</string>
@@ -13,9 +15,185 @@
     <string name="cd_switch_mode">Switch Scan Mode</string>
     <string name="cd_about">About App</string>
     <string name="cd_undo">Undo Last Action</string>
+    <string name="cd_project_thumbnail">Floor plan thumbnail</string>
+    <string name="cd_add_floor">Add floor</string>
+    <string name="cd_selected_note_photo">Selected note photo preview</string>
+
+    <!-- Project Hub -->
+    <string name="project_hub_title">WiProber Projects</string>
+    <string name="project_hub_subtitle">Create a survey from a floor plan or continue a recent project.</string>
+    <string name="recent_projects_title">Recent projects</string>
+    <string name="recent_projects_empty">No recent projects yet</string>
+    <string name="loading_recent_projects">Loading recent projects</string>
+    <string name="recent_projects_load_failed">Recent projects could not be loaded: %1$s</string>
+    <plurals name="unavailable_projects_warning">
+        <item quantity="one">%1$d project workspace could not be read and is not shown.</item>
+        <item quantity="other">%1$d project workspaces could not be read and are not shown.</item>
+    </plurals>
+    <string name="project_actions">Actions for project %1$s</string>
+    <string name="delete_project">Delete project</string>
+    <string name="delete_project_title">Delete “%1$s”?</string>
+    <string name="delete_project_message">This permanently deletes the local project, all of its floors, surveys, and the retained source ESX. Export a copy first if you need it.</string>
+    <string name="delete_project_failed">Failed to delete the project: %1$s</string>
+    <string name="deleting_project">Deleting project…</string>
+    <string name="importing_project">Importing and validating ESX…</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_retry">Retry</string>
+    <string name="recent_project_details">%1$s · %2$s · %3$s</string>
+    <string name="recent_project_accessibility">Project %1$s. %2$s</string>
+    <plurals name="recent_project_floor_count">
+        <item quantity="one">%d floor</item>
+        <item quantity="other">%d floors</item>
+    </plurals>
+    <string name="select_floor_plan_title">Select floor plan</string>
+    <string name="project_create_failed">Failed to create project: %1$s</string>
+    <string name="project_import_failed">Failed to import ESX: %1$s</string>
+    <string name="project_load_failed">Failed to load project: %1$s</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="unknown_error">Unknown error</string>
+    <string name="default_floor_plan_name">Floor plan</string>
+    <string name="note_image_read_failed">Failed to read note image</string>
+    <string name="calibration_tap_first_point">Calibration: tap the first point</string>
+    <string name="note_tap_location">Note: tap its location on the map</string>
+    <string name="last_scan_undone">Last scan undone</string>
+    <string name="last_note_undone">Last note undone</string>
+    <string name="last_track_undone">Last route undone</string>
+    <string name="select_map_first">Select a floor plan first</string>
+    <string name="track_started">Track started. Start walking…</string>
+    <string name="select_floor_button">Select floor ▾</string>
+    <string name="floor_selector_value">%1$s ▾</string>
+    <string name="select_floor_title">Select floor</string>
+    <string name="add_floor_title">Add floor</string>
+    <string name="floor_name_hint">Floor name</string>
+    <string name="project_name_hint">Project name</string>
+    <string name="first_floor_name_hint">First floor name</string>
+    <string name="action_add">Add</string>
+    <string name="action_create">Create</string>
+    <string name="scan_mode_stop_and_go">Stop-and-Go</string>
+    <string name="scan_mode_continuous">Continuous</string>
+    <string name="scan_hint_stop_and_go">Stop-and-Go: tap the map to scan at that point</string>
+    <string name="scan_hint_continuous">Continuous: tap the map to start a route; tap again at turns</string>
+    <string name="floor_switch_busy">Finish or cancel the current scan before switching floors</string>
+    <string name="floor_add_failed">Failed to add floor: %1$s</string>
+    <string name="floor_switch_failed">Failed to switch floor: %1$s</string>
+    <string name="export_succeeded">The complete project was exported successfully</string>
+    <string name="export_failed">Failed to export the project</string>
+    <string name="no_map_loaded">No floor plan is loaded</string>
+    <string name="create_project_title">New project</string>
+    <string name="create_project_explanation">Name the project and its first floor. You can add more floors later from the survey screen.</string>
+    <string name="selected_floor_plan_label">Selected floor plan</string>
+    <string name="cd_selected_floor_plan">Selected floor-plan preview</string>
+    <string name="project_name_label">Project name</string>
+    <string name="first_floor_name_label">First floor name</string>
+    <string name="default_project_name">New project</string>
+    <string name="default_first_floor_name">Floor 1</string>
+    <string name="create_project_action">Create project</string>
+    <string name="creating_project">Creating project…</string>
+    <string name="project_name_required">Enter a project name</string>
+    <string name="floor_name_required">Enter a floor name</string>
+    <string name="survey_screen_title">Survey</string>
+    <string name="survey_floor_summary">%1$s · %2$s · %3$s</string>
+    <string name="survey_map_accessibility">Floor plan %1$s. %2$s, %3$s, %4$s.</string>
+    <plurals name="survey_point_count">
+        <item quantity="one">%1$d point</item>
+        <item quantity="other">%1$d points</item>
+    </plurals>
+    <plurals name="survey_route_count">
+        <item quantity="one">%1$d route</item>
+        <item quantity="other">%1$d routes</item>
+    </plurals>
+    <plurals name="survey_note_count">
+        <item quantity="one">%1$d note</item>
+        <item quantity="other">%1$d notes</item>
+    </plurals>
+    <plurals name="project_floor_count">
+        <item quantity="one">%1$d floor</item>
+        <item quantity="other">%1$d floors</item>
+    </plurals>
+    <string name="loading_project">Opening project…</string>
+    <string name="switching_floor">Switching floor…</string>
+    <string name="adding_floor">Adding floor…</string>
+    <string name="exporting_project">Exporting the complete project…</string>
+    <string name="project_open_error">Project could not be opened: %1$s</string>
+    <string name="map_decode_error">The floor plan could not be displayed: %1$s</string>
+    <string name="action_back_projects">Projects</string>
+    <string name="export_complete_title">Export complete</string>
+    <string name="export_complete_summary">Exported %1$s · %2$s · %3$s · %4$s</string>
+    <string name="export_failed_title">Export failed</string>
+    <string name="export_failed_detail">The complete project was not written: %1$s</string>
+    <string name="action_ok">OK</string>
+    <string name="action_save">Save</string>
+    <string name="action_got_it">Got it</string>
+    <string name="action_developer_settings">Developer settings</string>
+    <string name="action_open_settings">Open settings</string>
+    <string name="action_wait">Wait</string>
+    <string name="action_github">GitHub</string>
+    <string name="floor_dropdown_label">Floor</string>
+    <string name="cd_floor_dropdown">Select project floor</string>
+    <string name="add_floor_dropdown_item">＋ Add floor…</string>
+    <string name="action_undo">Undo</string>
+    <string name="action_note">Note</string>
+    <string name="action_scale">Scale</string>
+    <string name="action_about">About WiProber</string>
+    <string name="start_route">Start route</string>
+    <string name="stop_route">Stop route</string>
+    <string name="select_route_start">Tap the map to select the route start</string>
+    <string name="continuous_ready">Press Start route, then select the start point on the map</string>
+    <string name="continuous_tracking_status">Recording · %1$s · %2$s</string>
+    <plurals name="scan_count">
+        <item quantity="one">%1$d scan</item>
+        <item quantity="other">%1$d scans</item>
+    </plurals>
+    <string name="continuous_elapsed">%1$d:%2$02d</string>
+    <string name="waypoint_added">Route turn added</string>
+    <string name="action_cancel_start">Cancel start</string>
+    <string name="scan_in_progress">Scanning Wi-Fi…</string>
+    <string name="scan_completed">Scan complete · %1$s</string>
+    <plurals name="network_count">
+        <item quantity="one">%1$d network</item>
+        <item quantity="other">%1$d networks</item>
+    </plurals>
+    <string name="scan_failed">Wi-Fi scan failed</string>
+    <string name="continuous_stopped_wifi_disabled">Wi-Fi was disabled. Continuous route recording stopped.</string>
+    <string name="continuous_stopped_scan_unavailable">Wi-Fi scanning became unavailable. Continuous route recording stopped.</string>
+    <string name="location_required_title">Location required</string>
+    <string name="location_required_message">Android requires Location Services to be enabled for Wi-Fi scanning.</string>
+    <string name="action_enable">Enable</string>
+    <string name="wifi_not_enabled">Wi-Fi is not enabled. Scan cancelled.</string>
+    <string name="location_not_enabled">Location Services are not enabled. Scan cancelled.</string>
+    <string name="permissions_required">Wi-Fi scan permissions are required.</string>
+    <string name="developer_settings_unavailable">Cannot open Developer Options.</string>
+    <string name="floor_name_label">Floor name</string>
+    <string name="default_added_floor_name">Floor %1$d</string>
+    <string name="add_floor_plan_selected">Selected plan: %1$s</string>
+    <string name="floor_plan_read_failed">Cannot read the selected floor plan</string>
+    <string name="important_information_title">Important information</string>
+    <string name="important_information_message">1. For survey accuracy, the app may disconnect Wi-Fi briefly during single scans.\n\n2. Android limits scan frequency to four scans in two minutes. For best Continuous performance, disable “Wi-Fi scan throttling” in Developer Options.</string>
+    <string name="mode_unavailable_title">Mode unavailable</string>
+    <string name="continuous_requires_throttling_disabled">Continuous scanning requires “Wi-Fi scan throttling” to be disabled in Developer Options. Otherwise, the scan rate is too slow.</string>
+    <string name="scan_frequency_limit_title">Scan frequency limit</string>
+    <string name="scan_frequency_limit_message">Android is throttling scan requests.\n\nWait %1$s.\n\nTo disable this limit, turn off “Wi-Fi scan throttling” in Developer Options.</string>
+    <plurals name="second_count">
+        <item quantity="one">%1$d second</item>
+        <item quantity="other">%1$d seconds</item>
+    </plurals>
+    <string name="version_unavailable">Unavailable</string>
+    <string name="about_message">Version: %1$s\n\nWiProber is an open-source tool for Wi-Fi site surveys.</string>
 
     <!-- Note Dialog -->
     <string name="note_label_text">Note Text</string>
-    <string name="note_hint_enter_text">Enter text here...</string>
+    <string name="note_hint_enter_text">Enter text here…</string>
+    <string name="project_actions_default">Project actions</string>
     <string name="note_btn_attach_photo">Attach Photo</string>
+    <string name="create_note_title">Create note</string>
+    <string name="note_content_required">A note must contain text or a photo</string>
+    <string name="image_source_title">Image source</string>
+    <string name="take_photo">Take photo</string>
+    <string name="choose_from_gallery">Choose from gallery</string>
+    <string name="distance_meters_hint">Distance (m)</string>
+    <string name="enter_distance_title">Enter distance</string>
+    <string name="enter_distance_message">Enter the real distance between the two points in metres.</string>
+    <string name="invalid_distance_value">Enter a positive distance</string>
+    <string name="invalid_calibration_points">The calibration points are invalid</string>
+    <string name="scale_calibrated">Scale calibrated</string>
 </resources>
