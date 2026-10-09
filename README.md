@@ -55,6 +55,14 @@ This is a non-commercial, open-source project. Please be aware of the following 
 3.  Let Gradle sync and download all dependencies.
 4.  Build and run the application on your device.
 
+### Building an APK on GitHub
+
+Open **Actions → Build APK → Run workflow**, select the branch, and start the build. Pull requests targeting `main` also run this workflow; ordinary pushes and tags do not automatically build or publish a release.
+
+The workflow runs JVM tests and Android lint, builds the app and instrumentation-test APKs, and uploads the app as the **wiprober-debug-apk** artifact. Download that artifact from the successful run and extract **WiProber-debug.apk**. It includes the source commit, APK metadata, and a SHA-256 checksum. Artifacts are retained for 30 days; device tests and the external customer ESX fixture are not run on GitHub.
+
+This is a debug-signed APK (`com.example.wiprober.debug`), not a production-signed release. GitHub runners may generate different debug keys between builds, so an existing debug installation may not accept an update. Export your projects before uninstalling: uninstalling removes app-owned projects and their source archives.
+
 ## How to Use
 
 ### Projects
