@@ -6,12 +6,14 @@ This project was born out of the need for a simple, mobile-first tool for networ
 
 Version **3.0.0** requires **Android 11 (API 30) or newer**. It adds a project hub, recent projects, multi-floor surveying, and ESX import that preserves original archive contents while adding new surveys.
 
-![Screenshot of WiProber App](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_0_info.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_1_map.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_2_note.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_3_scale.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_4_scan.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_5_Signal_Strength.png)
+## Screenshots
+
+| Project hub | Multi-floor survey |
+| :---: | :---: |
+| [<img src="docs/screenshots/v3-project-hub.png" width="320" alt="WiProber v3 project hub with New project, Open ESX project, and a recent two-floor project">](docs/screenshots/v3-project-hub.png) | [<img src="docs/screenshots/v3-continuous-survey.png" width="320" alt="WiProber v3 survey screen with floor selector, survey points, a route, and Continuous mode controls">](docs/screenshots/v3-continuous-survey.png) |
+| Create a project, import an ESX file, or resume recent work. | Switch floors and continue surveying with points, routes, notes, and scale calibration. |
+
+Select a screenshot to view it at full resolution.
 
 ## Features
 
