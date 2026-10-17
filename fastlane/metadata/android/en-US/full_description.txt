@@ -1,0 +1,19 @@
+Survey Wi-Fi coverage using your own floor plans and export projects in ESX format.
+
+• Create projects with multiple floors and calibrate each floor plan.
+• Record measurements at selected points with Stop-and-Go.
+• Collect measurements along a route with Continuous mode.
+• Add positioned text notes and photos.
+• Import ESX projects and append local surveys while preserving untouched source archive entries.
+• Export all floors together for further analysis in Ekahau.
+
+Requires Android 11 or newer. Android requires location permission and enabled location services to retrieve Wi-Fi scan results. You mark your position on the plan; WiProber does not request GPS coordinates. For frequent measurements, disable Wi-Fi scan throttling in Android Developer Options.
+
+Projects and measurements are stored locally. There are no ads, in-app purchases, accounts or analytics. Android system backups and storage providers chosen by the user may copy files off the device.
+
+The application interface is in English. This version has no separate Wi-Fi scanner screen. Imported Wi-Fi and spectrum measurements remain opaque and read-only; WiProber does not provide all editing features of Ekahau.
+
+WiProber is not affiliated with or endorsed by Ekahau.
+
+Privacy policy: https://github.com/htechno/WiProber/blob/main/docs/privacy-policy.md
+Support: wifi.solution.msk@gmail.com
