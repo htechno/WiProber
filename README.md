@@ -101,6 +101,26 @@ After importing the `.esx` file into Ekahau Pro, you will need to perform a few 
 2.  **Group Radios:** To group multiple radios (BSSIDs) under a single physical AP, navigate to **Project -> Measurement Grouping Options** and configure the desired grouping logic.
 3.  **Auto-Place Access Points:** To estimate the location of the access points on the map, use the **Auto-Placing** feature.
 
+## Release optimization checks
+
+Release APKs use R8 and resource shrinking. `@JsonModel` marks the reflection-based
+Gson models whose field names and generic types must remain compatible with saved
+projects and ESX catalogues. Apply it to any new model serialized through Gson.
+
+Run the minified storage and export tests on a connected device in a separate
+`com.example.wiprober.r8validation` package (does not replace the installed app):
+
+```sh
+./gradlew connectedR8ValidationAndroidTest -Pr8Validation \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.example.wiprober.ProjectRepositoryInstrumentedTest,com.example.wiprober.EsxExportServiceInstrumentedTest
+```
+
+This opt-in variant inherits release optimization settings and uses the debug
+signing key. Its additional rules retain shared test-runtime dependencies and the public
+methods/constructors called from the separate instrumentation APK;
+project/ESX model rules are identical to release. Production releases do not use
+these instrumentation rules. Run normal debug checks without `-Pr8Validation`.
+
 ## Contributing
 
 **WiProber** is a community-driven project, and your contributions are welcome!

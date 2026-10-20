@@ -43,12 +43,12 @@ class ExternalEsxImportInstrumentedTest {
         projectsDirectory.deleteRecursively()
         extractionDirectory.deleteRecursively()
         exportedFile.delete()
-        File(context.filesDir, FIXTURE_NAME).delete()
+        fixtureFile().delete()
     }
 
     @Test
     fun importsAddsSurveyAndPreservesExternalFixtureEntries() {
-        val fixture = File(context.filesDir, FIXTURE_NAME)
+        val fixture = fixtureFile()
         assumeTrue("External ESX fixture is not present on the device", fixture.isFile)
         val floors = EsxProjectImporter().import(fixture, extractionDirectory)
         assertEquals(2, floors.size)
@@ -114,6 +114,12 @@ class ExternalEsxImportInstrumentedTest {
         val reimported = EsxProjectImporter().import(exportedFile, reimportDirectory)
         assertEquals(originalScanCount + 1, reimported.first().scanPoints.size)
         reimportDirectory.deleteRecursively()
+    }
+
+    // External app storage also works for a non-debuggable, minified target.
+    private fun fixtureFile(): File {
+        val internal = File(context.filesDir, FIXTURE_NAME)
+        return if (internal.isFile) internal else File(context.getExternalFilesDir(null), FIXTURE_NAME)
     }
 
     private fun assertSourceEntriesPreserved(sourceFile: File, mergedFile: File) {

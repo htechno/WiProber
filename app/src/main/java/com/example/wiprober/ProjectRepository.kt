@@ -15,6 +15,7 @@ import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 import java.util.UUID
 
+@JsonModel
 enum class ProjectSourceType { NEW, IMPORTED_ESX }
 
 data class ProjectSummary(
@@ -945,6 +946,7 @@ class ProjectRepository(
 
     private data class ImageInfo(val width: Int, val height: Int, val extension: String)
 
+    @JsonModel
     private data class ProjectManifest(
         val schemaVersion: Int = PROJECT_SCHEMA_VERSION,
         val id: String,
@@ -959,6 +961,7 @@ class ProjectRepository(
         val lastOpenedAt: Long
     )
 
+    @JsonModel
     private data class FloorManifest(
         val id: String,
         val name: String,
@@ -973,6 +976,7 @@ class ProjectRepository(
         val sourceMetersPerUnit: Double? = null
     )
 
+    @JsonModel
     private data class SchemaTwoProjectManifest(
         val schemaVersion: Int = PREVIOUS_PROJECT_SCHEMA_VERSION,
         val id: String,
@@ -985,6 +989,7 @@ class ProjectRepository(
         val lastOpenedAt: Long
     )
 
+    @JsonModel
     private data class SchemaTwoFloorManifest(
         val id: String,
         val name: String,
@@ -995,6 +1000,7 @@ class ProjectRepository(
         val mapHeight: Int
     )
 
+    @JsonModel
     private data class LegacyProjectManifest(
         val schemaVersion: Int = LEGACY_PROJECT_SCHEMA_VERSION,
         val id: String,
@@ -1010,6 +1016,7 @@ class ProjectRepository(
         val lastOpenedAt: Long
     )
 
+    @JsonModel
     private data class StoredSurvey(
         val metersPerUnit: Double? = null,
         val scanPoints: List<ScanPoint> = emptyList(),
@@ -1043,6 +1050,7 @@ class ProjectRepository(
         return this
     }
 
+    @JsonModel
     private data class StoredNote(
         val id: String,
         val text: String,

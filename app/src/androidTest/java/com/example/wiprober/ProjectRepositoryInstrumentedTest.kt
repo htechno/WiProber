@@ -84,8 +84,38 @@ class ProjectRepositoryInstrumentedTest {
             )
         )
 
+        // Read literal on-disk keys: a Gson-to-Gson round trip alone can hide
+        // obfuscation that breaks projects written by the unminified 3.0.0.
+        val manifest = com.google.gson.JsonParser.parseString(
+            File(projectsDirectory, "project-1/manifest.json").readText()
+        ).asJsonObject
+        assertEquals("NEW", manifest.get("sourceType").asString)
+        val floor = manifest.getAsJsonArray("floors").single().asJsonObject
+        val surveyFile = File(File(projectsDirectory, "project-1"), floor.get("surveyRelativePath").asString)
+        val json = com.google.gson.JsonParser.parseString(surveyFile.readText()).asJsonObject
+        val network = json.getAsJsonArray("scanPoints").single().asJsonObject
+            .getAsJsonArray("wifiNetworks").single().asJsonObject
+        assertEquals("Fixture", network.get("ssid").asString)
+        assertEquals(5180, network.get("frequency").asInt)
+
+        // Simulate a saved survey from the previous, non-R8 release.
+        surveyFile.writeText("""
+            {"metersPerUnit":0.05,"scanPoints":[{"timestamp":10,"x":4,"y":5,
+            "wifiNetworks":[{"ssid":"Fixture","bssid":"00:11:22:33:44:55",
+            "level":-50,"frequency":5180,"security":"WPA2","technologies":["AX"],
+            "informationElements":""}],"importedFromEsx":false}],
+            "continuousScanSessions":[{"id":"route-1","startTime":100,"endTime":200,
+            "waypoints":[{"timestamp":0,"x":2,"y":3}],
+            "scanResults":[{"timestamp":5,"duration":20,"wifiNetworks":[]}],
+            "importedFromEsx":false}],"notes":[]}
+        """.trimIndent())
+
         val reopened = repository.openProject("project-1")
         assertEquals(0.05, reopened.activeFloor.metersPerUnit ?: 0.0, 0.0)
+        val route = reopened.activeFloor.continuousScanSessions.single()
+        assertEquals(100L, route.startTime)
+        assertEquals(2f, route.waypoints.single().x)
+        assertEquals(20L, route.scanResults.single().duration)
         assertEquals(
             "00:11:22:33:44:55",
             reopened.activeFloor.scanPoints.single().wifiNetworks.single().bssid

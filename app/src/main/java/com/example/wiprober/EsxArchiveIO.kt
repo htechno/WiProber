@@ -108,6 +108,7 @@ internal data class EsxArchiveEntry(
     val size: Long
 )
 
+@JsonModel
 enum class PreservedEsxEntityKind {
     OPAQUE_WIFI_TRACK,
     OPAQUE_SPECTRUM,
@@ -115,11 +116,13 @@ enum class PreservedEsxEntityKind {
     UNKNOWN_PAYLOAD
 }
 
+@JsonModel
 data class PreservedEsxEntity(
     val entryName: String,
     val kind: PreservedEsxEntityKind
 )
 
+@JsonModel
 data class EsxSourceCompatibility(
     val contractVersion: Int = 1,
     val sourceEntryCount: Int,
