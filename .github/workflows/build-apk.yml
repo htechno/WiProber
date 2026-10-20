@@ -37,7 +37,7 @@ jobs:
           "platforms;android-36" "build-tools;36.0.0"
 
       - name: Run unit tests, lint, and build APKs
-        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest
+        run: ./gradlew --no-daemon testDebugUnitTest lintDebug assembleDebug assembleDebugAndroidTest assembleRelease
 
       - name: Verify APK and prepare download
         run: |

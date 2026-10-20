@@ -11,7 +11,7 @@ android {
         applicationId = "com.example.wiprober"
         minSdk = 30
         targetSdk = 36
-        versionCode = 3
+        versionCode = 4
         versionName = "3.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -23,13 +23,26 @@ android {
             versionNameSuffix = "-debug"
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
         }
     }
+    // Opt-in isolated package for testing the same R8 rules on a device.
+    if (providers.gradleProperty("r8Validation").isPresent) {
+        buildTypes.create("r8Validation") {
+            initWith(buildTypes.getByName("release"))
+            applicationIdSuffix = ".r8validation"
+            signingConfig = signingConfigs.getByName("debug")
+            matchingFallbacks += "release"
+            proguardFile("r8-validation-rules.pro")
+        }
+        testBuildType = "r8Validation"
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
