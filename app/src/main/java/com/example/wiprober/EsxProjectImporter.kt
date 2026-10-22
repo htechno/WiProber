@@ -15,7 +15,7 @@ data class ImportedEsxProject(
     val sourceImageId: String,
     val mapFile: File,
     val mapInfo: MapInfo,
-    val metersPerUnit: Double,
+    val metersPerUnit: Double?,
     val scanPoints: List<ScanPoint>,
     val continuousScanSessions: List<ContinuousScanSession>,
     val notes: List<ImportedEsxNote>,
@@ -132,8 +132,7 @@ class EsxProjectImporter(
                         height.toInt()
                     ),
                     metersPerUnit = floor.double("metersPerUnit")
-                        ?.takeIf { it.isFinite() && it > 0 }
-                        ?: DEFAULT_METERS_PER_UNIT,
+                        ?.takeIf(FloorScalePolicy::isConfirmed),
                     scanPoints = importedSurveys.mapNotNull(ImportedSurveyGeometry::scanPoint),
                     continuousScanSessions = importedSurveys.mapNotNull(ImportedSurveyGeometry::session),
                     notes = importedNotes,
@@ -295,7 +294,6 @@ class EsxProjectImporter(
 
     companion object {
         private const val TEST_SOURCE_FILE = ".source.esx"
-        private const val DEFAULT_METERS_PER_UNIT = 0.025
         private const val MAX_MAP_DIMENSION = 100_000.0
     }
 }

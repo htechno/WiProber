@@ -14,6 +14,7 @@ New projects are generated as a supported Ekahau subset. Imported projects use a
 - `CreateProjectActivity.kt`: labelled new-project form for project name, first-floor name, and the selected floor-plan preview.
 - `SurveyActivity.kt`: survey rendering and Android UI adapter. It owns PhotoView coordinate adaptation, dialogs, Wi-Fi result mapping, scan coroutine presentation, and project I/O coroutines, but not permission/settings or Activity Result registration.
 - `SurveyAndroidCoordinator.kt`: all survey Activity Result contracts plus Wi-Fi permission, Wi-Fi panel, Location Services, scan-throttling, and Developer Options coordination.
+- `FloorScalePolicy.kt`: confirmed-versus-assumed scale and whole-project export preflight. Null is uncalibrated; a valid value equal to the export fallback is still calibrated.
 - `SurveyControlsPresenter.kt`: pure presentation mapping for Stop-and-Go and Continuous dock states.
 - `SurveySummary.kt`: Android-free active-floor and complete-export count aggregation used by survey/export presentation.
 - `ProjectRepository.kt`: schema-v3 multi-floor workspaces, schema-v1/v2 migration, immutable imported `base.esx`, recent metadata, atomic JSON persistence, map/media copies, orphan-media pruning, atomic whole-project deletion, and whole-project snapshots.
@@ -80,6 +81,8 @@ When changing ESX handling, add fixture-based tests that validate JSON relations
 - Expose immutable screen state from the ViewModel. Avoid public mutable `LiveData`, mutable collections mutated in place, and UI types or Activity-owned enums in domain state.
 - Make mutually exclusive modes explicit: importing/selecting a map, calibration, note placement, Stop-and-Go scanning, Continuous tracking, import/export, and undo must not race each other.
 - Keep the pending scan kind in the ViewModel while Android settings/permission launchers are active. The Android coordinator must never infer whether it is resuming Stop-and-Go or Continuous.
+- Keep the scan-access step with that pending request across Activity recreation. Request fine and coarse location together; approximate-only or denied access must offer app settings. Recheck real grants on return and consume a pending action at most once.
+- Before opening the export destination picker, inspect every floor for a finite positive scale. Require explicit consent for assumed scales on each export; do not persist that consent as calibration. A valid imported scale, including 0.025, is confirmed.
 - Keep `Uri`, `PointF`, PhotoView matrices, Activity Result contracts, permissions, and Settings intents out of `MainViewModel` and `SurveyScreenState`.
 - Use an injectable clock/ID source in logic that needs deterministic tests.
 - Content URIs and cache files are lifecycle-sensitive. Take persistable URI permission when appropriate or copy input into app-owned storage before relying on it after recreation/process death.

@@ -4,11 +4,18 @@ data class SurveyCoordinate(val x: Float, val y: Float)
 
 enum class SurveyScanMode { STOP_AND_GO, CONTINUOUS }
 
+/** Retained across recreation; a system round trip must finish before another one starts. */
+enum class ScanAccessStep {
+    CHECKING, PERMISSION_REQUEST, PERMISSION_EXPLANATION, APP_SETTINGS,
+    WIFI_SETTINGS, LOCATION_EXPLANATION, LOCATION_SETTINGS
+}
+
 enum class ProjectOperation {
     INITIAL_LOAD,
     FLOOR_SWITCH,
     FLOOR_MAP_SELECTION,
     FLOOR_ADD,
+    EXPORT_PREFLIGHT,
     EXPORT_DESTINATION,
     EXPORT
 }
@@ -25,7 +32,10 @@ sealed interface SurveyInteraction {
     data object NotePlacement : SurveyInteraction
     data class Calibration(val points: List<SurveyCoordinate>) : SurveyInteraction
     data object AwaitingContinuousStart : SurveyInteraction
-    data class AwaitingScanAccess(val request: PendingScanRequest) : SurveyInteraction
+    data class AwaitingScanAccess(
+        val request: PendingScanRequest,
+        val step: ScanAccessStep = ScanAccessStep.CHECKING
+    ) : SurveyInteraction
     data class StopAndGoScanning(val coordinate: SurveyCoordinate) : SurveyInteraction
     data class ContinuousTracking(
         val startedAt: Long,

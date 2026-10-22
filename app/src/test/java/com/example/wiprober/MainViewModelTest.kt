@@ -7,6 +7,74 @@ import org.junit.Test
 
 class MainViewModelTest {
     @Test
+    fun permissionAndSettingsRoundTripsRetainBothModesAndConsumeOnlyOnce() {
+        SurveyScanMode.entries.forEach { mode ->
+            val vm = viewModel()
+            vm.setScanMode(mode)
+            if (mode == SurveyScanMode.CONTINUOUS) {
+                vm.armContinuousStart()
+                vm.requestContinuousStart(10f, 20f)
+            } else vm.requestStopAndGoScan(10f, 20f)
+            val request = vm.pendingScanRequest()
+            assertTrue(vm.transitionScanAccess(ScanAccessStep.CHECKING, ScanAccessStep.PERMISSION_REQUEST))
+            assertEquals(null, vm.grantPendingScanAccess())
+            assertFalse(vm.transitionScanAccess(ScanAccessStep.CHECKING, ScanAccessStep.PERMISSION_REQUEST))
+            assertTrue(vm.transitionScanAccess(ScanAccessStep.PERMISSION_REQUEST, ScanAccessStep.CHECKING))
+            assertTrue(vm.transitionScanAccess(ScanAccessStep.CHECKING, ScanAccessStep.PERMISSION_EXPLANATION))
+            repeat(2) {
+                assertTrue(vm.transitionScanAccess(ScanAccessStep.PERMISSION_EXPLANATION, ScanAccessStep.APP_SETTINGS))
+                assertEquals(null, vm.recoverAfterActivityRecreation())
+                assertEquals(request, vm.pendingScanRequest())
+                assertEquals(null, vm.grantPendingScanAccess())
+                assertTrue(vm.transitionScanAccess(ScanAccessStep.APP_SETTINGS, ScanAccessStep.CHECKING))
+                if (it == 0) vm.transitionScanAccess(ScanAccessStep.CHECKING, ScanAccessStep.PERMISSION_EXPLANATION)
+            }
+            val expected = if (mode == SurveyScanMode.CONTINUOUS) StartedScanAction.Continuous
+                else StartedScanAction.StopAndGo(SurveyCoordinate(10f, 20f))
+            assertEquals(expected, vm.grantPendingScanAccess())
+            assertEquals(null, vm.grantPendingScanAccess())
+            assertFalse(vm.transitionScanAccess(ScanAccessStep.APP_SETTINGS, ScanAccessStep.CHECKING))
+        }
+    }
+
+    @Test
+    fun cancelledPermissionRequestCannotBeResumedByLateSettingsResult() {
+        val vm = viewModel()
+        vm.requestStopAndGoScan(1f, 2f)
+        vm.transitionScanAccess(ScanAccessStep.CHECKING, ScanAccessStep.PERMISSION_EXPLANATION)
+        vm.cancelPendingScanRequest()
+        assertFalse(vm.transitionScanAccess(ScanAccessStep.APP_SETTINGS, ScanAccessStep.CHECKING))
+        assertEquals(null, vm.grantPendingScanAccess())
+        assertEquals(SurveyInteraction.Idle, vm.screenState.value.interaction)
+    }
+
+    @Test
+    fun calibrationRejectsNonFiniteValuesAndAcceptsRealScaleEqualToFallback() {
+        val vm = viewModel()
+        vm.enterCalibrationMode()
+        vm.addCalibrationPoint(SurveyCoordinate(0f, 0f))
+        vm.addCalibrationPoint(SurveyCoordinate(100f, 0f))
+        listOf(Double.NaN, Double.POSITIVE_INFINITY, 0.0, -1.0).forEach {
+            assertFalse(vm.applyCalibration(it))
+            assertEquals(null, vm.screenState.value.metersPerUnit)
+        }
+        assertTrue(vm.applyCalibration(2.5))
+        assertEquals(0.025, vm.screenState.value.metersPerUnit!!, 0.0)
+    }
+
+    @Test
+    fun exportPreflightBlocksSurveyAndRecreationCancelsUnconfirmedExport() {
+        val vm = viewModel()
+        assertTrue(vm.beginProjectOperation(ProjectOperation.EXPORT_PREFLIGHT))
+        assertFalse(vm.requestStopAndGoScan(1f, 2f))
+        assertFalse(vm.beginProjectOperation(ProjectOperation.EXPORT))
+        assertEquals(ProjectOperation.EXPORT_PREFLIGHT, vm.recoverAfterActivityRecreation())
+        assertTrue(vm.beginProjectOperation(ProjectOperation.EXPORT_PREFLIGHT))
+        assertTrue(vm.beginProjectOperation(ProjectOperation.EXPORT_DESTINATION))
+        assertEquals(null, vm.recoverAfterActivityRecreation())
+    }
+
+    @Test
     fun pendingStopAndGoAndContinuousRequestsCannotReplaceEachOther() {
         val viewModel = viewModel()
 

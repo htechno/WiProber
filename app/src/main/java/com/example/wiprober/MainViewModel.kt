@@ -91,15 +91,15 @@ class MainViewModel @JvmOverloads constructor(
 
     fun applyCalibration(distanceMeters: Double): Boolean {
         val calibration = _screenState.value.interaction as? SurveyInteraction.Calibration ?: return false
-        if (distanceMeters <= 0 || calibration.points.size != 2) return false
+        if (!distanceMeters.isFinite() || distanceMeters <= 0 || calibration.points.size != 2) return false
         val (first, second) = calibration.points
         val dx = (first.x - second.x).toDouble()
         val dy = (first.y - second.y).toDouble()
         val distancePixels = sqrt(dx * dx + dy * dy)
         if (!distancePixels.isFinite() || distancePixels <= 0.0) return false
-        _screenState.update {
-            it.copy(metersPerUnit = distanceMeters / distancePixels, interaction = SurveyInteraction.Idle)
-        }
+        val scale = distanceMeters / distancePixels
+        if (!FloorScalePolicy.isConfirmed(scale)) return false
+        _screenState.update { it.copy(metersPerUnit = scale, interaction = SurveyInteraction.Idle) }
         return true
     }
 
@@ -147,7 +147,18 @@ class MainViewModel @JvmOverloads constructor(
     fun pendingScanRequest(): PendingScanRequest? =
         (_screenState.value.interaction as? SurveyInteraction.AwaitingScanAccess)?.request
 
+    fun pendingScanAccess(): SurveyInteraction.AwaitingScanAccess? =
+        _screenState.value.interaction as? SurveyInteraction.AwaitingScanAccess
+
+    fun transitionScanAccess(expected: ScanAccessStep, next: ScanAccessStep): Boolean {
+        val pending = pendingScanAccess() ?: return false
+        if (pending.step != expected) return false
+        setInteraction(pending.copy(step = next))
+        return true
+    }
+
     fun grantPendingScanAccess(): StartedScanAction? {
+        if (pendingScanAccess()?.step != ScanAccessStep.CHECKING) return null
         val request = pendingScanRequest() ?: return null
         return when (request) {
             is PendingScanRequest.StopAndGo -> {
@@ -328,7 +339,10 @@ class MainViewModel @JvmOverloads constructor(
                 ProjectOperation.FLOOR_MAP_SELECTION,
                 ProjectOperation.EXPORT_DESTINATION
             )
-        if (!mayReplacePicker && state.interaction !is SurveyInteraction.Idle) return false
+        val exportPreflightComplete = state.interaction ==
+            SurveyInteraction.ProjectBusy(ProjectOperation.EXPORT_PREFLIGHT) &&
+            operation == ProjectOperation.EXPORT_DESTINATION
+        if (!mayReplacePicker && !exportPreflightComplete && state.interaction !is SurveyInteraction.Idle) return false
         _screenState.value = state.copy(interaction = SurveyInteraction.ProjectBusy(operation))
         return true
     }

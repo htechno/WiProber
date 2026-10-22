@@ -49,7 +49,7 @@ class ExternalEsxFixtureTest {
             assertTrue(project.mapFile.length() > 0L)
             assertTrue(project.mapInfo.width > 0)
             assertTrue(project.mapInfo.height > 0)
-            assertTrue(project.metersPerUnit > 0.0)
+            assertTrue(FloorScalePolicy.isConfirmed(project.metersPerUnit))
         }
     }
 }
