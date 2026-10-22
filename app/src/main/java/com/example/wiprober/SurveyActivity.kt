@@ -116,6 +116,7 @@ class SurveyActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        androidCoordinator.resumePendingScanAccess()
         if (isProjectReady && viewModel.screenState.value.isTracking) {
             startContinuousScanningLoop()
         }
@@ -137,6 +138,7 @@ class SurveyActivity : AppCompatActivity() {
         stopAndGoScanJob?.cancel()
         continuousScanLoopJob?.cancel()
         wifiScanner.close()
+        androidCoordinator.close()
         super.onDestroy()
     }
 
@@ -176,18 +178,27 @@ class SurveyActivity : AppCompatActivity() {
                 }
 
                 override fun onExportDestinationSelected(uri: Uri?) {
+                    if (viewModel.screenState.value.interaction !=
+                        SurveyInteraction.ProjectBusy(ProjectOperation.EXPORT_DESTINATION)
+                    ) return
                     if (uri == null) viewModel.finishProjectOperation(ProjectOperation.EXPORT_DESTINATION)
                     else exportProject(uri)
                 }
 
                 override fun onScanAccessReady() = startPendingScanAction()
 
+                override fun pendingScanAccess() = viewModel.pendingScanAccess()
+
+                override fun transitionScanAccess(expected: ScanAccessStep, next: ScanAccessStep) =
+                    viewModel.transitionScanAccess(expected, next)
+
                 override fun onScanAccessRejected(reason: ScanAccessRejection) {
                     viewModel.cancelPendingScanRequest()
                     val message = when (reason) {
                         ScanAccessRejection.WIFI_DISABLED -> R.string.wifi_not_enabled
                         ScanAccessRejection.LOCATION_DISABLED -> R.string.location_not_enabled
-                        ScanAccessRejection.PERMISSION_DENIED -> R.string.permissions_required
+                        ScanAccessRejection.PERMISSION_DENIED -> R.string.precise_location_required_title
+                        ScanAccessRejection.SETTINGS_UNAVAILABLE -> R.string.app_settings_unavailable
                     }
                     Toast.makeText(this@SurveyActivity, message, Toast.LENGTH_LONG).show()
                 }
@@ -446,6 +457,49 @@ class SurveyActivity : AppCompatActivity() {
             Toast.makeText(this, R.string.no_map_loaded, Toast.LENGTH_SHORT).show()
             return
         }
+        val activeSnapshot = createProjectSnapshot() ?: return
+        val projectId = currentProjectId ?: return
+        val floorId = currentFloorId ?: return
+        if (!viewModel.beginProjectOperation(ProjectOperation.EXPORT_PREFLIGHT)) return
+        lifecycleScope.launch {
+            showProjectOperationProgress(R.string.checking_export)
+            projectSaveJob?.cancelAndJoin()
+            val result = withContext(Dispatchers.IO) {
+                runCatching {
+                    projectRepository.saveProject(projectId, floorId, activeSnapshot)
+                    FloorScalePolicy.uncalibratedFloors(projectRepository.snapshotProject(projectId))
+                }
+            }
+            hideProjectOperation()
+            result.onSuccess { floors ->
+                if (floors.isEmpty()) selectExportDestination()
+                else showUncalibratedExportWarning(floors.map { it.name })
+            }.onFailure { error ->
+                viewModel.finishProjectOperation(ProjectOperation.EXPORT_PREFLIGHT)
+                showExportFailure(error)
+            }
+        }
+    }
+
+    private fun showUncalibratedExportWarning(floorNames: List<String>) {
+        MaterialAlertDialogBuilder(this)
+            .setTitle(R.string.uncalibrated_export_title)
+            .setMessage(getString(R.string.uncalibrated_export_message, floorNames.joinToString("\n")))
+            .setPositiveButton(R.string.export_with_assumed_scale) { _, _ -> selectExportDestination() }
+            .setNegativeButton(R.string.cancel_export) { _, _ ->
+                viewModel.finishProjectOperation(ProjectOperation.EXPORT_PREFLIGHT)
+            }
+            .setOnCancelListener {
+                viewModel.finishProjectOperation(ProjectOperation.EXPORT_PREFLIGHT)
+            }
+            .show()
+    }
+
+    private fun selectExportDestination() {
+        // A stale dialog or result after recreation must not authorize another export.
+        if (viewModel.screenState.value.interaction !=
+            SurveyInteraction.ProjectBusy(ProjectOperation.EXPORT_PREFLIGHT)
+        ) return
         val safeTitle = currentProjectTitle
             .replace(Regex("[\\\\/:*?\"<>|\\p{Cntrl}]"), "_")
             .ifBlank { "WiProber-project" }

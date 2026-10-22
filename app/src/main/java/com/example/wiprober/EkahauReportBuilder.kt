@@ -85,7 +85,7 @@ class EkahauReportBuilder(
                     width = width,
                     height = height,
                     imageId = imageId,
-                    metersPerUnit = floor.metersPerUnit ?: 0.025,
+                    metersPerUnit = FloorScalePolicy.forExport(floor.metersPerUnit),
                     cropMaxX = width,
                     cropMaxY = height
                 ),

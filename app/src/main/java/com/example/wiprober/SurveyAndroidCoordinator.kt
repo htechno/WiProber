@@ -10,6 +10,7 @@ import android.net.wifi.WifiManager
 import android.provider.Settings
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AlertDialog
 import androidx.core.app.ActivityCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -22,6 +23,8 @@ internal class SurveyAndroidCoordinator(
     private val wifiScanner: WifiScanner,
     private val callbacks: Callbacks
 ) {
+    private var accessDialog: AlertDialog? = null
+
     private val selectNoteImageLauncher = activity.registerForActivityResult(
         ActivityResultContracts.GetContent()
     ) { uri -> uri?.let(callbacks::onNoteImageSelected) }
@@ -41,6 +44,7 @@ internal class SurveyAndroidCoordinator(
     private val enableWifiLauncher = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
+        if (!finishStep(ScanAccessStep.WIFI_SETTINGS)) return@registerForActivityResult
         if (wifiScanner.isWifiEnabled()) ensureWifiScanAccess()
         else callbacks.onScanAccessRejected(ScanAccessRejection.WIFI_DISABLED)
     }
@@ -48,18 +52,29 @@ internal class SurveyAndroidCoordinator(
     private val enableLocationLauncher = activity.registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
+        if (!finishStep(ScanAccessStep.LOCATION_SETTINGS)) return@registerForActivityResult
         if (isLocationEnabled()) ensureWifiScanAccess()
         else callbacks.onScanAccessRejected(ScanAccessRejection.LOCATION_DISABLED)
     }
 
     private val permissionLauncher = activity.registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { grants ->
-        if (requiredPermissions().all { grants[it] == true || isGranted(it) }) {
+    ) {
+        if (!finishStep(ScanAccessStep.PERMISSION_REQUEST)) return@registerForActivityResult
+        // Re-read Android's current grants, rather than trusting a stale result map.
+        if (requiredPermissions().all(::isGranted)) {
             ensureWifiScanAccess()
         } else {
-            callbacks.onScanAccessRejected(ScanAccessRejection.PERMISSION_DENIED)
+            explainPrecisePermission()
         }
+    }
+
+    private val appSettingsLauncher = activity.registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (!finishStep(ScanAccessStep.APP_SETTINGS)) return@registerForActivityResult
+        if (requiredPermissions().all(::isGranted)) ensureWifiScanAccess()
+        else explainPrecisePermission()
     }
 
     fun selectNoteImage() = selectNoteImageLauncher.launch("image/*")
@@ -71,6 +86,7 @@ internal class SurveyAndroidCoordinator(
     fun createEsxDocument(suggestedName: String) = saveEsxLauncher.launch(suggestedName)
 
     fun ensureWifiScanAccess() {
+        if (callbacks.pendingScanAccess()?.step != ScanAccessStep.CHECKING) return
         val missingPermissions = requiredPermissions().filterNot(::isGranted)
         val requirement = WifiScanAccessPolicy.requirement(
             WifiScanAccessSnapshot(
@@ -81,16 +97,80 @@ internal class SurveyAndroidCoordinator(
         )
         when (requirement) {
             WifiScanAccessRequirement.ENABLE_WIFI -> {
-                enableWifiLauncher.launch(Intent(Settings.Panel.ACTION_WIFI))
+                if (move(ScanAccessStep.CHECKING, ScanAccessStep.WIFI_SETTINGS)) {
+                    enableWifiLauncher.launch(Intent(Settings.Panel.ACTION_WIFI))
+                }
             }
 
             WifiScanAccessRequirement.GRANT_PERMISSIONS -> {
-                permissionLauncher.launch(missingPermissions.toTypedArray())
+                if (isGranted(Manifest.permission.ACCESS_COARSE_LOCATION)) {
+                    explainPrecisePermission()
+                } else if (move(ScanAccessStep.CHECKING, ScanAccessStep.PERMISSION_REQUEST)) {
+                    // Android 12+ requires requesting both together, including precision upgrades.
+                    permissionLauncher.launch(arrayOf(
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                    ))
+                }
             }
 
-            WifiScanAccessRequirement.ENABLE_LOCATION -> showLocationRequirement()
+            WifiScanAccessRequirement.ENABLE_LOCATION -> {
+                if (move(ScanAccessStep.CHECKING, ScanAccessStep.LOCATION_EXPLANATION)) {
+                    showLocationRequirement()
+                }
+            }
             WifiScanAccessRequirement.READY -> callbacks.onScanAccessReady()
         }
+    }
+
+    /** Restore our dialogs, but never re-launch a pending system permission/settings screen. */
+    fun resumePendingScanAccess() {
+        when (callbacks.pendingScanAccess()?.step) {
+            ScanAccessStep.CHECKING -> ensureWifiScanAccess()
+            ScanAccessStep.PERMISSION_EXPLANATION -> showPrecisePermissionRequirement()
+            ScanAccessStep.LOCATION_EXPLANATION -> showLocationRequirement()
+            else -> Unit
+        }
+    }
+
+    fun close() {
+        accessDialog?.setOnCancelListener(null)
+        accessDialog?.dismiss()
+        accessDialog = null
+    }
+
+    private fun move(expected: ScanAccessStep, next: ScanAccessStep): Boolean =
+        callbacks.transitionScanAccess(expected, next)
+
+    private fun finishStep(step: ScanAccessStep): Boolean = move(step, ScanAccessStep.CHECKING)
+
+    private fun explainPrecisePermission() {
+        if (move(ScanAccessStep.CHECKING, ScanAccessStep.PERMISSION_EXPLANATION)) {
+            showPrecisePermissionRequirement()
+        }
+    }
+
+    private fun showPrecisePermissionRequirement() {
+        if (accessDialog?.isShowing == true) return
+        accessDialog = MaterialAlertDialogBuilder(activity)
+            .setTitle(R.string.precise_location_required_title)
+            .setMessage(R.string.precise_location_required_message)
+            .setPositiveButton(R.string.open_app_settings) { _, _ ->
+                if (move(ScanAccessStep.PERMISSION_EXPLANATION, ScanAccessStep.APP_SETTINGS)) {
+                    val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.fromParts("package", activity.packageName, null))
+                    runCatching { appSettingsLauncher.launch(intent) }.onFailure {
+                        callbacks.onScanAccessRejected(ScanAccessRejection.SETTINGS_UNAVAILABLE)
+                    }
+                }
+            }
+            .setNegativeButton(R.string.action_cancel) { _, _ ->
+                callbacks.onScanAccessRejected(ScanAccessRejection.PERMISSION_DENIED)
+            }
+            .setOnCancelListener {
+                callbacks.onScanAccessRejected(ScanAccessRejection.PERMISSION_DENIED)
+            }
+            .show()
     }
 
     fun isScanThrottlingEnabled(): Boolean {
@@ -107,11 +187,14 @@ internal class SurveyAndroidCoordinator(
     }
 
     private fun showLocationRequirement() {
-        MaterialAlertDialogBuilder(activity)
+        if (accessDialog?.isShowing == true) return
+        accessDialog = MaterialAlertDialogBuilder(activity)
             .setTitle(R.string.location_required_title)
             .setMessage(R.string.location_required_message)
             .setPositiveButton(R.string.action_enable) { _, _ ->
-                enableLocationLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                if (move(ScanAccessStep.LOCATION_EXPLANATION, ScanAccessStep.LOCATION_SETTINGS)) {
+                    enableLocationLauncher.launch(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+                }
             }
             .setNegativeButton(R.string.action_cancel) { _, _ ->
                 callbacks.onScanAccessRejected(ScanAccessRejection.LOCATION_DISABLED)
@@ -124,6 +207,7 @@ internal class SurveyAndroidCoordinator(
 
     private fun requiredPermissions(): List<String> = listOf(
         Manifest.permission.ACCESS_FINE_LOCATION,
+        Manifest.permission.ACCESS_COARSE_LOCATION,
         Manifest.permission.CHANGE_WIFI_STATE,
         Manifest.permission.ACCESS_WIFI_STATE
     )
@@ -139,6 +223,8 @@ internal class SurveyAndroidCoordinator(
         fun onPictureCaptured(success: Boolean)
         fun onFloorMapSelected(uri: Uri?)
         fun onExportDestinationSelected(uri: Uri?)
+        fun pendingScanAccess(): SurveyInteraction.AwaitingScanAccess?
+        fun transitionScanAccess(expected: ScanAccessStep, next: ScanAccessStep): Boolean
         fun onScanAccessReady()
         fun onScanAccessRejected(reason: ScanAccessRejection)
         fun onDeveloperSettingsUnavailable()
@@ -152,5 +238,6 @@ internal class SurveyAndroidCoordinator(
 internal enum class ScanAccessRejection {
     WIFI_DISABLED,
     LOCATION_DISABLED,
-    PERMISSION_DENIED
+    PERMISSION_DENIED,
+    SETTINGS_UNAVAILABLE
 }
