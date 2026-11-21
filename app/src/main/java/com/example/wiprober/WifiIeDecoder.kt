@@ -7,7 +7,7 @@ internal enum class WifiIeFactKind { SSID, RATES, CHANNEL, COUNTRY, COUNTRY_CHAN
 internal data class WifiIeFact(val kind: WifiIeFactKind, val values: List<String>)
 internal data class WifiIeDecoded(val facts: List<WifiIeFact>, val malformed: Boolean)
 
-/** Only decodes fields whose lengths are known. Unknown/extended IEs remain available as hex. */
+/** Only decodes fields whose lengths are known. Unknown/extended IEs remain in the snapshot without speculative decoding. */
 internal object WifiIeDecoder {
     fun decode(ie: WifiInformationElement): WifiIeDecoded {
         val b = ie.bytes

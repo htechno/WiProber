@@ -77,7 +77,7 @@ class WifiMonitorInstrumentedTest {
                 val results = (outcome as WifiScanOutcome.Success).results.mapNotNull(WifiMonitorSource::snapshot)
                 assertTrue("At least one nearby AP is needed for this test", results.isNotEmpty())
                 results.forEach { network ->
-                    val detail = WifiMonitorDialogs.detailText(context, network, SystemClock.elapsedRealtime())
+                    val detail = WifiNetworkDetailsText.format(context, network, SystemClock.elapsedRealtime())
                     assertTrue(detail.contains(network.bssid))
                     assertTrue(network.informationElements.all { ie -> ie.bytes.all { value -> value in 0..255 } })
                 }
@@ -110,6 +110,66 @@ class WifiMonitorInstrumentedTest {
             scenario.onActivity { activity ->
                 assertEquals(lastScan, ViewModelProvider(activity)[WifiMonitorViewModel::class.java].state.value.lastScanMillis)
                 assertEquals(activity.getString(R.string.monitor_paused), activity.findViewById<TextView>(R.id.status).text)
+            }
+        }
+    }
+
+    @Test fun decodedDetailsHaveNamedSuitesSeparateFieldsAndNoByteDumps() {
+        val ie = WifiInformationElement(48, 0,
+            "01 00 00 0f ac 04 01 00 00 0f ac 04 01 00 00 0f ac 08 c0 00".split(" ").map { it.toInt(16) })
+        val network = WifiNetworkSnapshot("10:20:30:40:50:60", "Office", -50, 5180, 0,
+            ssidBytes = listOf(65, 66), informationElements = listOf(ie,
+                WifiInformationElement(221, 0, listOf(0, 80, 242, 2)),
+                WifiInformationElement(254, 0, listOf(222, 173, 190, 239))))
+        val detail = WifiNetworkDetailsText.format(context, network, 1_000)
+        assertTrue(detail.contains("CCMP-128"))
+        assertTrue(detail.contains("SAE"))
+        assertTrue(detail.contains("PMF capable: Yes\nPMF required: Yes"))
+        listOf("Hex:", "SSID bytes", "00:0F:AC", "00:50:F2", "DE AD BE EF").forEach {
+            assertFalse("Raw payload leaked into details: $it", detail.contains(it))
+        }
+        val text = WifiMonitorText(context)
+        assertEquals("SSID: true", text.fact(WifiIeFact(WifiIeFactKind.SSID, listOf("true"))))
+        val unknown = text.fact(WifiIeFact(WifiIeFactKind.RSN,
+            listOf("1", "AA:BB:CC:04", "00:0F:AC:FF", "AA:BB:CC:08", "false", "false")))
+        assertFalse(unknown.contains("CCMP"))
+        assertFalse(unknown.contains("SAE"))
+        assertFalse(unknown.contains("AA:BB"))
+    }
+
+    @Test fun fullScreenDetailsSurviveRecreationAndBackPreservesListState() {
+        instrumentation.uiAutomation.grantRuntimePermission(context.packageName, Manifest.permission.ACCESS_FINE_LOCATION)
+        val source = WifiMonitorSource(context)
+        assumeTrue("Scanner access must already be configured", !source.throttled() && source.access() == WifiScanAccessRequirement.READY)
+        val network = WifiNetworkSnapshot("10:20:30:40:50:60", "Office", -50, 5180, 0)
+        val filter = WifiMonitorFilter("Office")
+        ActivityScenario.launch(WifiMonitorActivity::class.java).use { scenario ->
+            scenario.onActivity { activity ->
+                ViewModelProvider(activity)[WifiMonitorViewModel::class.java].apply {
+                    toggleRunning()
+                    setFilter(filter)
+                    scanFinished(listOf(network), WifiMonitorStatus.UPDATED, 1_000, 2_000)
+                }
+            }
+            onView(withText(network.bssid)).perform(click())
+            onView(withId(R.id.detailsContent)).check(matches(isDisplayed()))
+            scenario.recreate()
+            scenario.onActivity { activity ->
+                val state = ViewModelProvider(activity)[WifiMonitorViewModel::class.java].state.value
+                assertEquals(network, state.selectedNetwork?.network)
+                assertFalse(state.running)
+                val root = activity.findViewById<android.view.View>(R.id.monitorRoot)
+                val details = activity.findViewById<android.view.View>(R.id.detailsContent)
+                assertEquals(root.height - root.paddingTop - root.paddingBottom, details.height)
+            }
+            instrumentation.sendKeyDownUpSync(android.view.KeyEvent.KEYCODE_BACK)
+            onView(withId(R.id.scannerContent)).check(matches(isDisplayed()))
+            onView(withText(network.bssid)).check(matches(isDisplayed()))
+            scenario.onActivity { activity ->
+                val state = ViewModelProvider(activity)[WifiMonitorViewModel::class.java].state.value
+                assertNull(state.selectedNetwork)
+                assertEquals(filter, state.filter)
+                assertFalse(state.running)
             }
         }
     }

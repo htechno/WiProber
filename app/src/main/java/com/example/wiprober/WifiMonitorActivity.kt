@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
+import androidx.activity.OnBackPressedCallback
 import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
@@ -35,6 +36,10 @@ class WifiMonitorActivity : AppCompatActivity() {
     private lateinit var adapter: WifiNetworkAdapter
     private var scanJob: Job? = null
     private var detailJob: Job? = null
+    private var displayedSelection: WifiNetworkSelection? = null
+    private val detailsBack = object : OnBackPressedCallback(false) {
+        override fun handleOnBackPressed() = model.closeDetails()
+    }
     private var dialog: AlertDialog? = null
     private var requestInitialAccess = false
     private var displayedNetworks: List<WifiNetworkSnapshot>? = null
@@ -57,6 +62,8 @@ class WifiMonitorActivity : AppCompatActivity() {
         binding.tableHeader.root.setBackgroundColor(MaterialColors.getColor(binding.root,
             com.google.android.material.R.attr.colorSurfaceVariant))
         binding.toolbar.setNavigationOnClickListener { finish() }
+        binding.detailsToolbar.setNavigationOnClickListener { model.closeDetails() }
+        onBackPressedDispatcher.addCallback(this, detailsBack)
         binding.pauseButton.setOnClickListener {
             model.toggleRunning()
             if (!model.state.value.running) scanJob?.cancel()
@@ -137,6 +144,7 @@ class WifiMonitorActivity : AppCompatActivity() {
     }
 
     private fun render(state: WifiMonitorState) {
+        renderDetails(state.selectedNetwork)
         val text = WifiMonitorText(this)
         val wait = ((state.nextScanMillis - state.nowMillis + 999) / 1000).coerceAtLeast(0)
         binding.status.text = when {
@@ -156,13 +164,13 @@ class WifiMonitorActivity : AppCompatActivity() {
         }
         binding.setupButton.isVisible = state.throttled || state.access != WifiScanAccessRequirement.READY
         binding.pauseButton.setText(if (state.running) R.string.monitor_pause else R.string.monitor_resume)
-        binding.signalChart.submit(state.history, if (state.canScan) state.nowMillis else state.history.lastOrNull()?.elapsedMillis ?: state.nowMillis)
+        binding.signalChart.submit(state.history, if (state.canScan) state.nowMillis else state.history.lastOrNull()?.elapsedMillis ?: state.nowMillis, state.sessionStartedAtMillis)
         binding.channelsGroup.isVisible = state.channelsExpanded
         binding.channelsButton.setText(if (state.channelsExpanded) R.string.monitor_channels_hide else R.string.monitor_channels_show)
         binding.connection.text = state.connection?.let {
-            "${text.ssid(it.ssid)}\n${it.bssid} · ${getString(R.string.monitor_dbm, it.rssi)}\n" +
+            "${text.ssid(it.ssid)} · ${getString(R.string.monitor_dbm, it.rssi)} · ${text.standard(it.standard)}\n${it.bssid} · " +
                 getString(R.string.monitor_connection_radio, text.band(WifiRadioModel.band(it.frequencyMhz)),
-                    WifiRadioModel.channel(it.frequencyMhz)?.toString() ?: text.unknown(), it.frequencyMhz, text.standard(it.standard)) +
+                    WifiRadioModel.channel(it.frequencyMhz)?.toString() ?: text.unknown(), it.frequencyMhz) +
                 "\n" + getString(R.string.monitor_connection_speed, text.speed(it.linkMbps), text.speed(it.txMbps), text.speed(it.rxMbps))
         } ?: getString(R.string.monitor_disconnected)
         binding.lastScan.text = state.lastScanMillis?.let {
@@ -177,21 +185,30 @@ class WifiMonitorActivity : AppCompatActivity() {
             binding.tableScroll.isVisible = filteredNetworks.isNotEmpty()
             binding.filterButton.setText(if (state.filter.isActive) R.string.monitor_filter_active else R.string.monitor_filter)
             binding.channelSummary.text = getString(R.string.monitor_channels_summary,
-                filteredNetworks.count { WifiRadioModel.spans(it).isNotEmpty() }, filteredNetworks.size)
+                filteredNetworks.count(WifiChannelAxes::displays), filteredNetworks.size)
         }
         if (state.channelsExpanded) binding.channelChart.submit(filteredNetworks, state.connection?.bssid)
     }
 
     private fun showDetails(network: WifiNetworkSnapshot) {
+        model.selectNetwork(network, SystemClock.elapsedRealtime())
+    }
+
+    private fun renderDetails(selection: WifiNetworkSelection?) {
+        detailsBack.isEnabled = selection != null
+        binding.scannerContent.isVisible = selection == null
+        binding.detailsContent.isVisible = selection != null
+        if (selection == displayedSelection) return
+        displayedSelection = selection
         detailJob?.cancel()
+        binding.detailsText.text = ""
+        if (selection == null) return
         detailJob = lifecycleScope.launch {
             val details = withContext(Dispatchers.Default) {
-                WifiMonitorDialogs.detailText(applicationContext, network, SystemClock.elapsedRealtime())
+                WifiNetworkDetailsText.format(applicationContext, selection.network, selection.selectedAtMillis)
             }
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                dialog?.dismiss()
-                dialog = WifiMonitorDialogs.details(this@WifiMonitorActivity, details)
-            }
+            binding.detailsText.text = details
+            binding.detailsScroll.scrollTo(0, 0)
         }
     }
 

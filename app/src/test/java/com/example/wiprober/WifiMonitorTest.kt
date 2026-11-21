@@ -95,4 +95,51 @@ class WifiMonitorTest {
         assertEquals(201_000L, model.state.value.history.last().elapsedMillis)
         assertFalse(model.state.value.canScan)
     }
+
+    @Test fun timeAxisStartsAtSessionZeroAndRetainsItsOriginAcrossPauses() {
+        val model = WifiMonitorViewModel()
+        model.tick(500_000, null, WifiScanAccessRequirement.READY, true)
+        assertNull(model.state.value.sessionStartedAtMillis)
+        model.tick(600_000, null, WifiScanAccessRequirement.READY, false)
+        assertEquals(600_000L, model.state.value.sessionStartedAtMillis)
+        assertEquals(listOf(0L, 10_000L, 20_000L, 30_000L), WifiTimeAxis.at(1_000).ticks)
+        model.toggleRunning()
+        model.tick(650_000, null, WifiScanAccessRequirement.READY, false)
+        model.toggleRunning()
+        model.tick(800_000, null, WifiScanAccessRequirement.READY, false)
+        val origin = requireNotNull(model.state.value.sessionStartedAtMillis)
+        assertEquals(600_000L, origin)
+        val axis = WifiTimeAxis.at(model.state.value.nowMillis - origin)
+        assertEquals(listOf(90_000L, 120_000L, 150_000L, 180_000L, 210_000L), axis.ticks)
+        assertEquals(0f, axis.fraction(90_000L), .001f)
+        assertEquals(1f, axis.fraction(210_000L), .001f)
+    }
+
+    @Test fun fiveGhzPlotsOmitGapAndPreserveWideAndDiscontiguousChannels() {
+        val plots = WifiChannelAxes.plots.filter { it.band == WifiBand.GHZ_5 }
+        assertEquals(listOf(36, 40, 44, 48, 52, 56, 60, 64), plots[0].ticksMhz.map(WifiRadioModel::channel))
+        assertEquals((100..144 step 4).toList() + (149..177 step 4).toList(), plots[1].ticksMhz.map(WifiRadioModel::channel))
+        assertEquals(5170f, plots[0].startMhz)
+        assertEquals(5330f, plots[0].endMhz)
+        assertEquals(5490f, plots[1].startMhz)
+        assertTrue(WifiChannelAxes.displays(network(width = 3, center = 5250)))
+        val split = WifiRadioModel.spans(network(width = 4, center = 5210, center1 = 5530))
+        assertTrue(plots[0].intersects(split[0]))
+        assertFalse(plots[0].intersects(split[1]))
+        assertTrue(plots[1].intersects(split[1]))
+        assertFalse(WifiChannelAxes.displays(network(frequency = 4920)))
+    }
+
+    @Test fun detailsKeepTheirSelectedSnapshotWhenScansRefresh() {
+        val model = WifiMonitorViewModel()
+        val selected = network()
+        model.setFilter(WifiMonitorFilter("Office"))
+        model.selectNetwork(selected, 1_000)
+        model.scanFinished(listOf(selected.copy(rssi = -80)), WifiMonitorStatus.UPDATED, 1_000, 2_000)
+        assertEquals(WifiNetworkSelection(selected, 1_000), model.state.value.selectedNetwork)
+        model.closeDetails()
+        assertNull(model.state.value.selectedNetwork)
+        assertEquals("Office", model.state.value.filter.ssid)
+        assertEquals(-80, model.state.value.networks.single().rssi)
+    }
 }

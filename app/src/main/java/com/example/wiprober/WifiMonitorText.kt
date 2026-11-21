@@ -50,7 +50,24 @@ internal class WifiMonitorText(private val context: Context) {
         else -> R.string.monitor_ie_generic
     })
     }
-    fun fact(fact: WifiIeFact): String = context.getString(when (fact.kind) {
+    fun fact(fact: WifiIeFact): String {
+        val values = fact.values.toMutableList()
+        if (fact.kind == WifiIeFactKind.RSN) {
+            values[1] = suites(values[1], R.array.monitor_rsn_ciphers)
+            values[2] = suites(values[2], R.array.monitor_rsn_ciphers)
+            values[3] = suites(values[3], R.array.monitor_rsn_akms)
+        }
+        // Vendor OUI is a byte identifier; only expose the decoded decimal type.
+        if (fact.kind == WifiIeFactKind.VENDOR) return context.getString(R.string.monitor_ie_vendor_value, values[1])
+        val booleanFields = when (fact.kind) {
+            WifiIeFactKind.RSN -> setOf(4, 5)
+            WifiIeFactKind.HT_CAPABILITIES -> setOf(0, 1, 2, 3)
+            WifiIeFactKind.HT_OPERATION -> setOf(2)
+            WifiIeFactKind.VHT_CAPABILITIES -> setOf(1, 2, 3)
+            else -> emptySet()
+        }
+        booleanFields.forEach { values[it] = yesNo(values[it].toBooleanStrictOrNull()) }
+        return context.getString(when (fact.kind) {
         WifiIeFactKind.SSID -> R.string.monitor_ie_ssid_value
         WifiIeFactKind.RATES -> R.string.monitor_ie_rates_value
         WifiIeFactKind.CHANNEL -> R.string.monitor_ie_channel_value
@@ -63,5 +80,16 @@ internal class WifiMonitorText(private val context: Context) {
         WifiIeFactKind.VHT_OPERATION -> R.string.monitor_ie_vht_op_value
         WifiIeFactKind.VENDOR -> R.string.monitor_ie_vendor_value
         WifiIeFactKind.RSN -> R.string.monitor_ie_rsn_value
-    }, *fact.values.map { when (it) { "true" -> yesNo(true); "false" -> yesNo(false); else -> it } }.toTypedArray())
+    }, *values.toTypedArray())
+    }
+
+    private fun suites(selectors: String, namesResource: Int): String {
+        val names = context.resources.getStringArray(namesResource)
+        return selectors.split(",").joinToString(", ") { selector ->
+            val fields = selector.trim().split(":")
+            val type = if (fields.size == 4 && fields.take(3).joinToString(":").equals("00:0F:AC", true))
+                fields[3].toIntOrNull(16) else null
+            type?.let { names.getOrNull(it) }?.takeIf { it.isNotEmpty() } ?: context.getString(R.string.monitor_unknown)
+        }
+    }
 }

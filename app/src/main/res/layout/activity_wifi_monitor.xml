@@ -1,71 +1,81 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/monitorRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical">
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:minHeight="56dp" app:title="@string/monitor_title" app:navigationIcon="@drawable/ic_monitor_back"
-        app:navigationContentDescription="@string/monitor_back" />
-    <androidx.core.widget.NestedScrollView android:layout_width="match_parent" android:layout_height="0dp"
-        android:layout_weight="1" android:fillViewport="true">
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-            android:orientation="vertical" android:padding="16dp">
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
-                <TextView android:id="@+id/status" android:layout_width="0dp" android:layout_weight="1"
-                    android:layout_height="wrap_content" android:text="@string/monitor_waiting"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium" android:paddingEnd="8dp" android:paddingStart="0dp" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/pauseButton"
-                    style="@style/Widget.Material3.Button.TonalButton" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="@string/monitor_pause" />
-            </LinearLayout>
-            <com.google.android.material.button.MaterialButton android:id="@+id/setupButton"
-                style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="@string/monitor_setup" android:visibility="gone" />
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp"
-                android:text="@string/monitor_signal_title" android:textAppearance="@style/TextAppearance.Material3.TitleSmall" />
-            <com.example.wiprober.WifiSignalChartView android:id="@+id/signalChart" android:layout_width="match_parent"
-                android:layout_height="128dp" android:layout_marginTop="8dp" />
-            <com.google.android.material.button.MaterialButton android:id="@+id/channelsButton"
-                style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:text="@string/monitor_channels_show" android:gravity="start|center_vertical" />
-            <LinearLayout android:id="@+id/channelsGroup" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:orientation="vertical" android:visibility="gone">
-                <com.example.wiprober.WifiChannelChartView android:id="@+id/channelChart" android:layout_width="match_parent"
-                    android:layout_height="390dp" android:contentDescription="@string/monitor_channels_description" />
-                <TextView android:id="@+id/channelSummary" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
-            </LinearLayout>
-            <com.google.android.material.card.MaterialCardView android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="8dp" app:cardElevation="0dp" app:strokeWidth="1dp">
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
-                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/monitor_connection_title"
-                        android:textAppearance="@style/TextAppearance.Material3.LabelLarge" />
-                    <TextView android:id="@+id/connection" android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp" android:text="@string/monitor_disconnected" android:textIsSelectable="true"
-                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium" />
-                    <TextView android:id="@+id/lastScan" android:layout_width="match_parent" android:layout_height="wrap_content"
-                        android:layout_marginTop="8dp" android:text="@string/monitor_no_scan" android:textAppearance="@style/TextAppearance.Material3.LabelMedium" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:gravity="center_vertical">
-                <TextView android:id="@+id/networkCount" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
-                <com.google.android.material.button.MaterialButton android:id="@+id/filterButton"
-                    style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" android:text="@string/monitor_filter" />
-            </LinearLayout>
-            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/monitor_table_hint"
-                android:textAppearance="@style/TextAppearance.Material3.BodySmall" android:paddingBottom="8dp" />
-            <TextView android:id="@+id/empty" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:text="@string/monitor_empty" android:padding="16dp" />
-            <HorizontalScrollView android:id="@+id/tableScroll" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:fillViewport="true" android:scrollbars="horizontal">
-                <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                    <include android:id="@+id/tableHeader" layout="@layout/item_wifi_network" />
-                    <androidx.recyclerview.widget.RecyclerView android:id="@+id/networks" android:layout_width="830dp"
-                        android:layout_height="420dp" android:scrollbars="vertical" android:nestedScrollingEnabled="true" />
-                </LinearLayout>
-            </HorizontalScrollView>
+    android:id="@+id/monitorRoot" android:layout_width="match_parent" android:layout_height="match_parent">
+    <LinearLayout android:id="@+id/scannerContent" android:layout_width="match_parent"
+        android:layout_height="match_parent" android:orientation="vertical">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+            <com.google.android.material.appbar.MaterialToolbar
+                android:id="@+id/toolbar" android:layout_width="0dp" android:layout_weight="1" android:layout_height="match_parent"
+                app:title="@string/monitor_title" app:navigationIcon="@drawable/ic_monitor_back"
+                app:navigationContentDescription="@string/monitor_back" />
+            <com.google.android.material.button.MaterialButton android:id="@+id/pauseButton"
+                style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content"
+                android:layout_height="48dp" android:minWidth="0dp" android:paddingHorizontal="12dp"
+                android:text="@string/monitor_pause" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-</LinearLayout>
+        <androidx.core.widget.NestedScrollView android:id="@+id/scannerScroll" android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
+            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:orientation="vertical" android:paddingHorizontal="8dp" android:paddingBottom="4dp">
+                <TextView android:id="@+id/status" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/monitor_waiting" android:textSize="11sp" android:includeFontPadding="false" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/setupButton"
+                    style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:text="@string/monitor_setup" android:visibility="gone" />
+                <com.example.wiprober.WifiSignalChartView android:id="@+id/signalChart"
+                    android:layout_width="match_parent" android:layout_height="104dp" />
+                <TextView android:id="@+id/connection" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/monitor_disconnected" android:textIsSelectable="true"
+                    android:textSize="12sp" android:includeFontPadding="false" />
+                <TextView android:id="@+id/lastScan" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/monitor_no_scan" android:textSize="11sp" android:includeFontPadding="false" />
+                <com.google.android.material.button.MaterialButton android:id="@+id/channelsButton"
+                    style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent"
+                    android:layout_height="34dp" android:minHeight="0dp" android:insetTop="0dp" android:insetBottom="0dp"
+                    android:padding="0dp" android:textSize="12sp" android:text="@string/monitor_channels_show"
+                    android:gravity="start|center_vertical" />
+                <LinearLayout android:id="@+id/channelsGroup" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:visibility="gone">
+                    <com.example.wiprober.WifiChannelChartView android:id="@+id/channelChart" android:layout_width="match_parent"
+                        android:layout_height="304dp" android:contentDescription="@string/monitor_channels_description" />
+                    <TextView android:id="@+id/channelSummary" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textSize="10sp" android:includeFontPadding="false" />
+                </LinearLayout>
+                <LinearLayout android:layout_width="match_parent" android:layout_height="34dp" android:gravity="center_vertical">
+                    <TextView android:id="@+id/networkCount" android:layout_width="0dp" android:layout_weight="1"
+                        android:layout_height="wrap_content" android:textSize="13sp" android:includeFontPadding="false" />
+                    <com.google.android.material.button.MaterialButton android:id="@+id/filterButton"
+                        style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content"
+                        android:layout_height="match_parent" android:minHeight="0dp" android:minWidth="0dp"
+                        android:insetTop="0dp" android:insetBottom="0dp" android:paddingHorizontal="8dp"
+                        android:textSize="12sp" android:text="@string/monitor_filter" />
+                </LinearLayout>
+                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/monitor_table_hint"
+                    android:textSize="10sp" android:includeFontPadding="false" android:paddingBottom="2dp" />
+                <TextView android:id="@+id/empty" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:text="@string/monitor_empty" android:paddingVertical="8dp" android:textSize="12sp" />
+                <HorizontalScrollView android:id="@+id/tableScroll" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:fillViewport="true" android:scrollbars="horizontal">
+                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                        <include android:id="@+id/tableHeader" layout="@layout/item_wifi_network" />
+                        <androidx.recyclerview.widget.RecyclerView android:id="@+id/networks" android:layout_width="538dp"
+                            android:layout_height="420dp" android:scrollbars="vertical" android:nestedScrollingEnabled="true" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+    <LinearLayout android:id="@+id/detailsContent" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:visibility="gone" android:background="?attr/colorSurface">
+        <com.google.android.material.appbar.MaterialToolbar android:id="@+id/detailsToolbar"
+            android:layout_width="match_parent" android:layout_height="48dp" app:title="@string/monitor_details"
+            app:navigationIcon="@drawable/ic_monitor_back" app:navigationContentDescription="@string/monitor_back" />
+        <androidx.core.widget.NestedScrollView android:id="@+id/detailsScroll" android:layout_width="match_parent"
+            android:layout_height="0dp" android:layout_weight="1" android:fillViewport="true">
+            <TextView android:id="@+id/detailsText" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:paddingHorizontal="8dp" android:paddingBottom="8dp" android:textSize="13sp"
+                android:includeFontPadding="false" android:textIsSelectable="true" />
+        </androidx.core.widget.NestedScrollView>
+    </LinearLayout>
+</FrameLayout>

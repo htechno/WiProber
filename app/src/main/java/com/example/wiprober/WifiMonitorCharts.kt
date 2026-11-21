@@ -15,14 +15,16 @@ class WifiSignalChartView @JvmOverloads constructor(context: Context, attrs: Att
     private val path = Path()
     private var samples: List<WifiSignalSample> = emptyList()
     private var now = 0L
+    private var sessionStart = 0L
     private val density = resources.displayMetrics.density
     private val ticks = intArrayOf(-30, -50, -70, -90)
     private val ink get() = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface)
     private val accent get() = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary)
 
-    internal fun submit(history: List<WifiSignalSample>, elapsedMillis: Long) {
+    internal fun submit(history: List<WifiSignalSample>, elapsedMillis: Long, startedAtMillis: Long?) {
         samples = history
         now = elapsedMillis
+        sessionStart = startedAtMillis ?: elapsedMillis
         val current = history.lastOrNull()?.rssi?.let { context.getString(R.string.monitor_dbm, it) }
             ?: context.getString(R.string.monitor_not_available)
         contentDescription = context.getString(R.string.monitor_signal_accessibility, current)
@@ -31,10 +33,10 @@ class WifiSignalChartView @JvmOverloads constructor(context: Context, attrs: Att
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        val left = 38 * density
+        val left = 28 * density
         val right = width - 8 * density
-        val top = 12 * density
-        val bottom = height - 25 * density
+        val top = 9 * density
+        val bottom = height - 20 * density
         fun y(rssi: Int) = bottom - (rssi.coerceIn(-100, -30) + 100) / 70f * (bottom - top)
         paint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 11f, resources.displayMetrics)
         paint.strokeWidth = density
@@ -46,9 +48,13 @@ class WifiSignalChartView @JvmOverloads constructor(context: Context, attrs: Att
             canvas.drawLine(left, y(rssi), right, y(rssi), paint)
         }
         paint.color = ink; paint.alpha = 140
-        canvas.drawText(context.getString(R.string.monitor_chart_start), left, height - 3 * density, paint)
-        val end = context.getString(R.string.monitor_chart_now)
-        canvas.drawText(end, right - paint.measureText(end), height - 3 * density, paint)
+        val axis = WifiTimeAxis.at(now - sessionStart)
+        for (tick in axis.ticks) {
+            val label = context.getString(R.string.monitor_chart_seconds, tick / 1000)
+            val x = left + axis.fraction(tick) * (right - left)
+            canvas.drawText(label, (x - paint.measureText(label) / 2).coerceIn(0f, width - paint.measureText(label)),
+                height - 3 * density, paint)
+        }
         canvas.save()
         canvas.clipRect(left, top - 4 * density, right, bottom)
         path.reset()
@@ -56,7 +62,7 @@ class WifiSignalChartView @JvmOverloads constructor(context: Context, attrs: Att
         for (sample in samples) {
             val rssi = sample.rssi
             if (rssi == null) { previous = null; continue }
-            val x = right - (now - sample.elapsedMillis) / 120_000f * (right - left)
+            val x = left + axis.fraction(sample.elapsedMillis - sessionStart) * (right - left)
             if (previous != null && previous.bssid == sample.bssid && sample.elapsedMillis - previous.elapsedMillis <= 2500L) {
                 path.lineTo(x, y(rssi))
             } else path.moveTo(x, y(rssi))
@@ -85,11 +91,7 @@ class WifiChannelChartView @JvmOverloads constructor(context: Context, attrs: At
     private var connectedBssid: String? = null
     private val formatter = WifiMonitorText(context)
     private val rssiTicks = intArrayOf(-40, -70, -100)
-    private val plots = listOf(
-        Triple(WifiBand.GHZ_2_4, 2395f..2500f, listOf(2412, 2437, 2462, 2484)),
-        Triple(WifiBand.GHZ_5, 4890f..5925f, listOf(5180, 5320, 5500, 5660, 5825)),
-        Triple(WifiBand.GHZ_6, 5925f..7125f, listOf(5955, 6115, 6275, 6435, 6595, 6755, 6915, 7115))
-    )
+    private val plots = WifiChannelAxes.plots
     private data class Rectangle(val band: WifiBand, val bssid: String, val rssi: Int, val span: WifiChannelSpan, val color: Int)
     private var rectangles: List<Rectangle> = emptyList()
     internal fun submit(values: List<WifiNetworkSnapshot>, connected: String?) {
@@ -106,30 +108,33 @@ class WifiChannelChartView @JvmOverloads constructor(context: Context, attrs: At
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         val ink = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface)
-        plots.forEachIndexed { index, (band, range, ticks) ->
-            val rowTop = index * height / 3f
-            val top = rowTop + 26 * density
-            val bottom = (index + 1) * height / 3f - 22 * density
-            val left = 32 * density
-            val right = width - 14 * density
-            fun x(mhz: Float) = left + (mhz - range.start) / (range.endInclusive - range.start) * (right - left)
+        plots.forEachIndexed { index, (band, startMhz, endMhz, ticksMhz) ->
+            val rowTop = index * height / plots.size.toFloat()
+            val top = rowTop + 17 * density
+            val bottom = (index + 1) * height / plots.size.toFloat() - 23 * density
+            val left = 26 * density
+            val right = width - 8 * density
+            fun x(mhz: Float) = left + (mhz - startMhz) / (endMhz - startMhz) * (right - left)
             fun y(rssi: Int) = bottom - (rssi.coerceIn(-100, -30) + 100) / 70f * (bottom - top)
             paint.style = Paint.Style.FILL
-            paint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 12f, resources.displayMetrics)
-            paint.color = ink
-            canvas.drawText(formatter.band(band), left, rowTop + 15 * density, paint)
             paint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 10f, resources.displayMetrics)
+            paint.color = ink
+            canvas.drawText(formatter.band(band), left, rowTop + 11 * density, paint)
+            paint.textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 9f, resources.displayMetrics)
             for (rssi in rssiTicks) {
                 paint.color = ink; paint.alpha = 140
                 canvas.drawText(rssi.toString(), 0f, y(rssi) + 3 * density, paint)
                 paint.alpha = 25; paint.strokeWidth = density
                 canvas.drawLine(left, y(rssi), right, y(rssi), paint)
             }
-            for (frequency in ticks) {
+            val labels = ticksMhz.map { WifiRadioModel.channel(it).toString() }
+            val spacing = ticksMhz.zipWithNext { a, b -> x(b.toFloat()) - x(a.toFloat()) }.minOrNull() ?: Float.MAX_VALUE
+            val stagger = labels.any { paint.measureText(it) + 2 * density > spacing }
+            for ((tickIndex, frequency) in ticksMhz.withIndex()) {
                 paint.color = ink; paint.alpha = 160
-                val label = WifiRadioModel.channel(frequency).toString()
+                val label = labels[tickIndex]
                 canvas.drawText(label, x(frequency.toFloat()) - paint.measureText(label) / 2,
-                    bottom + 15 * density, paint)
+                    bottom + (if (stagger && tickIndex % 2 == 1) 21 else 11) * density, paint)
             }
             canvas.save(); canvas.clipRect(left, top, right, bottom)
             for (rectangle in rectangles) {
