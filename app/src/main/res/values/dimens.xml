@@ -1,0 +1,3 @@
+<resources>
+    <dimen name="monitor_table_min_width">360dp</dimen>
+</resources>

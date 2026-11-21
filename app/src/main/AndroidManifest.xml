@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Bind local gateway echo probes to the Wi-Fi network observed by the scanner. -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Разрешение на доступ к состоянию Wi-Fi -->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
@@ -21,6 +25,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.WiProber">
+        <activity
+            android:name=".IperfActivity"
+            android:windowSoftInputMode="adjustResize|stateAlwaysHidden"
+            android:exported="false" />
         <activity
             android:name=".WifiMonitorActivity"
             android:exported="false" />

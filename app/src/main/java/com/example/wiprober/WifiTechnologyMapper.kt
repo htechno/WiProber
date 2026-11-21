@@ -13,7 +13,6 @@ object WifiTechnologyMapper {
             ScanResult.WIFI_STANDARD_11AX -> technologies += "AX"
             ScanResult.WIFI_STANDARD_11AC -> technologies += "AC"
             ScanResult.WIFI_STANDARD_11N -> technologies += "N"
-            ScanResult.WIFI_STANDARD_11AD -> technologies += "AD"
             ScanResult.WIFI_STANDARD_LEGACY,
             ScanResult.WIFI_STANDARD_UNKNOWN -> Unit
         }

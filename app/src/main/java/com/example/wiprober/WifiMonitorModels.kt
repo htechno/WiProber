@@ -2,7 +2,14 @@ package com.example.wiprober
 
 import java.util.Locale
 
-internal enum class WifiBand { GHZ_2_4, GHZ_5, GHZ_6, GHZ_60, UNKNOWN }
+internal enum class WifiBand {
+    GHZ_2_4, GHZ_5, GHZ_6, UNKNOWN;
+
+    companion object {
+        val descending = listOf(GHZ_6, GHZ_5, GHZ_2_4)
+        val supported = descending.toSet()
+    }
+}
 internal enum class WifiSecurity { OPEN, WEP, WPA_PERSONAL, WPA_ENTERPRISE, WPA2_PERSONAL,
     WPA2_ENTERPRISE, WPA3_PERSONAL, WPA3_ENTERPRISE, OWE, OWE_TRANSITION, UNKNOWN }
 
@@ -31,7 +38,8 @@ internal data class WifiNetworkSnapshot(
     val affiliatedLinks: List<String> = emptyList(),
     val securityTypes: List<Int> = emptyList(),
     val informationElements: List<WifiInformationElement> = emptyList(),
-    val informationElementsTruncated: Boolean = false
+    val informationElementsTruncated: Boolean = false,
+    val vendor: MacVendor? = null
 ) {
     val band get() = WifiRadioModel.band(frequencyMhz)
     val channel get() = WifiRadioModel.channel(frequencyMhz)
@@ -40,7 +48,8 @@ internal data class WifiNetworkSnapshot(
 
 internal data class WifiConnectionSnapshot(
     val ssid: String, val bssid: String, val rssi: Int, val frequencyMhz: Int,
-    val standard: Int, val linkMbps: Int, val txMbps: Int, val rxMbps: Int
+    val standard: Int, val linkMbps: Int, val txMbps: Int, val rxMbps: Int,
+    val mldAddress: String? = null
 )
 
 internal data class WifiSignalSample(val elapsedMillis: Long, val bssid: String?, val rssi: Int?)
@@ -48,16 +57,34 @@ internal data class WifiInformationElement(val id: Int, val extensionId: Int, va
 internal data class WifiChannelSpan(val startMhz: Float, val endMhz: Float)
 
 internal data class WifiMonitorFilter(
-    val ssid: String = "", val band: WifiBand? = null,
+    val ssid: String = "", val bands: Set<WifiBand> = WifiBand.supported,
     val channel: Int? = null, val minimumRssi: Int? = null
 ) {
     val isActive get() = this != WifiMonitorFilter()
     fun apply(networks: List<WifiNetworkSnapshot>): List<WifiNetworkSnapshot> = networks.filter {
         it.ssid.contains(ssid.trim(), ignoreCase = true) &&
-            (band == null || it.band == band) &&
+            it.band in bands &&
             (channel == null || it.channel == channel) &&
             (minimumRssi == null || it.rssi >= minimumRssi)
     }.sortedWith(compareByDescending<WifiNetworkSnapshot> { it.rssi }.thenBy { it.bssid })
+}
+
+internal sealed interface WifiTableRow {
+    data class Section(val band: WifiBand, val count: Int) : WifiTableRow
+    data class Network(val snapshot: WifiNetworkSnapshot, val showBand: Boolean) : WifiTableRow
+}
+
+/** Keeps the RSSI order of the filtered results within each selected band. */
+internal fun wifiTableRows(networks: List<WifiNetworkSnapshot>, split: Boolean): List<WifiTableRow> {
+    if (!split) return networks.map { WifiTableRow.Network(it, showBand = true) }
+    val groups = networks.groupBy { it.band }
+    return buildList {
+        for (band in WifiBand.descending) {
+            val group = groups[band] ?: continue
+            add(WifiTableRow.Section(band, group.size))
+            group.mapTo(this) { WifiTableRow.Network(it, showBand = false) }
+        }
+    }
 }
 
 /** Public ScanResult constants represented as integers to keep this boundary JVM-testable. */
@@ -71,7 +98,6 @@ internal object WifiRadioModel {
         in 2400..2500 -> WifiBand.GHZ_2_4
         in 4900..5895 -> WifiBand.GHZ_5
         in 5925..7125 -> WifiBand.GHZ_6
-        in 58320..70200 -> WifiBand.GHZ_60
         else -> WifiBand.UNKNOWN
     }
 
@@ -82,7 +108,6 @@ internal object WifiRadioModel {
         frequency in 5005..5895 && frequency % 5 == 0 -> (frequency - 5000) / 5
         frequency == 5935 -> 2
         frequency in 5955..7115 && (frequency - 5950) % 5 == 0 -> (frequency - 5950) / 5
-        frequency in 58320..70200 && (frequency - 56160) % 2160 == 0 -> (frequency - 56160) / 2160
         else -> null
     }
 
@@ -92,8 +117,7 @@ internal object WifiRadioModel {
     }
 
     fun spans(network: WifiNetworkSnapshot): List<WifiChannelSpan> {
-        // 60 GHz channelization is different and cannot use ScanResult's 20 MHz default.
-        if (network.band == WifiBand.GHZ_60) return emptyList()
+        if (network.band == WifiBand.UNKNOWN) return emptyList()
         val width = widthMhz(network.widthCode) ?: return emptyList()
         fun span(center: Int, mhz: Int) = WifiChannelSpan(center - mhz / 2f, center + mhz / 2f)
         if (network.widthCode == 4) {

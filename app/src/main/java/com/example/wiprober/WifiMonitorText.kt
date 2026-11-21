@@ -9,29 +9,36 @@ internal class WifiMonitorText(private val context: Context) {
         WifiBand.GHZ_2_4 -> R.string.monitor_band_24
         WifiBand.GHZ_5 -> R.string.monitor_band_5
         WifiBand.GHZ_6 -> R.string.monitor_band_6
-        WifiBand.GHZ_60 -> R.string.monitor_band_60
         WifiBand.UNKNOWN -> R.string.monitor_unknown
     })
     fun standard(value: Int) = context.getString(when (value) {
         1 -> R.string.monitor_standard_legacy; 4 -> R.string.monitor_standard_n
         5 -> R.string.monitor_standard_ac; 6 -> R.string.monitor_standard_ax
-        7 -> R.string.monitor_standard_ad; 8 -> R.string.monitor_standard_be
+        8 -> R.string.monitor_standard_be
         else -> R.string.monitor_unknown
     })
     fun width(network: WifiNetworkSnapshot): String = when {
-        network.band == WifiBand.GHZ_60 -> unknown()
         network.widthCode == 4 -> context.getString(R.string.monitor_width_80_80)
         else -> WifiRadioModel.widthMhz(network.widthCode)?.let { context.getString(R.string.monitor_mhz, it) } ?: unknown()
     }
-    fun security(network: WifiNetworkSnapshot) = network.security.joinToString(" / ") {
-        context.getString(when (it) {
-            WifiSecurity.OPEN -> R.string.monitor_security_open; WifiSecurity.WEP -> R.string.monitor_security_wep
-            WifiSecurity.WPA_PERSONAL -> R.string.monitor_security_wpa_psk; WifiSecurity.WPA_ENTERPRISE -> R.string.monitor_security_wpa_eap
-            WifiSecurity.WPA2_PERSONAL -> R.string.monitor_security_wpa2_psk; WifiSecurity.WPA2_ENTERPRISE -> R.string.monitor_security_wpa2_eap
-            WifiSecurity.WPA3_PERSONAL -> R.string.monitor_security_wpa3_psk; WifiSecurity.WPA3_ENTERPRISE -> R.string.monitor_security_wpa3_eap
-            WifiSecurity.OWE -> R.string.monitor_security_owe; WifiSecurity.OWE_TRANSITION -> R.string.monitor_security_owe_transition
-            WifiSecurity.UNKNOWN -> R.string.monitor_unknown
-        })
+    fun security(modes: Set<WifiSecurity>, compact: Boolean = false): String {
+        return modes.sorted().joinToString(if (compact) "/" else " / ") {
+            context.getString(securityLabel(it, compact))
+        }
+    }
+
+    private fun securityLabel(mode: WifiSecurity, compact: Boolean): Int = when (mode) {
+        WifiSecurity.OPEN -> R.string.monitor_security_open
+        WifiSecurity.WEP -> R.string.monitor_security_wep
+        WifiSecurity.WPA_PERSONAL -> if (compact) R.string.monitor_short_wpa_p else R.string.monitor_security_wpa_psk
+        WifiSecurity.WPA_ENTERPRISE -> if (compact) R.string.monitor_short_wpa_e else R.string.monitor_security_wpa_eap
+        WifiSecurity.WPA2_PERSONAL -> if (compact) R.string.monitor_short_wpa2_p else R.string.monitor_security_wpa2_psk
+        WifiSecurity.WPA2_ENTERPRISE -> if (compact) R.string.monitor_short_wpa2_e else R.string.monitor_security_wpa2_eap
+        WifiSecurity.WPA3_PERSONAL -> if (compact) R.string.monitor_short_wpa3_p else R.string.monitor_security_wpa3_psk
+        WifiSecurity.WPA3_ENTERPRISE -> if (compact) R.string.monitor_short_wpa3_e else R.string.monitor_security_wpa3_eap
+        WifiSecurity.OWE -> R.string.monitor_security_owe
+        WifiSecurity.OWE_TRANSITION -> if (compact) R.string.monitor_short_owe_transition else R.string.monitor_security_owe_transition
+        WifiSecurity.UNKNOWN -> if (compact) R.string.monitor_short_unknown else R.string.monitor_unknown
     }
     fun yesNo(value: Boolean?) = value?.let { context.getString(if (it) R.string.monitor_yes else R.string.monitor_no) } ?: unknown()
     fun frequency(value: Int) = if (value > 0) context.getString(R.string.monitor_mhz, value) else unknown()

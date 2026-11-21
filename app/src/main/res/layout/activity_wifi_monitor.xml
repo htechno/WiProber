@@ -42,27 +42,49 @@
                     <TextView android:id="@+id/channelSummary" android:layout_width="match_parent" android:layout_height="wrap_content"
                         android:textSize="10sp" android:includeFontPadding="false" />
                 </LinearLayout>
-                <LinearLayout android:layout_width="match_parent" android:layout_height="34dp" android:gravity="center_vertical">
-                    <TextView android:id="@+id/networkCount" android:layout_width="0dp" android:layout_weight="1"
-                        android:layout_height="wrap_content" android:textSize="13sp" android:includeFontPadding="false" />
-                    <com.google.android.material.button.MaterialButton android:id="@+id/filterButton"
-                        style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content"
-                        android:layout_height="match_parent" android:minHeight="0dp" android:minWidth="0dp"
-                        android:insetTop="0dp" android:insetBottom="0dp" android:paddingHorizontal="8dp"
-                        android:textSize="12sp" android:text="@string/monitor_filter" />
-                </LinearLayout>
-                <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/monitor_table_hint"
-                    android:textSize="10sp" android:includeFontPadding="false" android:paddingBottom="2dp" />
-                <TextView android:id="@+id/empty" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:text="@string/monitor_empty" android:paddingVertical="8dp" android:textSize="12sp" />
-                <HorizontalScrollView android:id="@+id/tableScroll" android:layout_width="match_parent" android:layout_height="wrap_content"
-                    android:fillViewport="true" android:scrollbars="horizontal">
-                    <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
-                        <include android:id="@+id/tableHeader" layout="@layout/item_wifi_network" />
-                        <androidx.recyclerview.widget.RecyclerView android:id="@+id/networks" android:layout_width="538dp"
-                            android:layout_height="420dp" android:scrollbars="vertical" android:nestedScrollingEnabled="true" />
+                <com.google.android.material.tabs.TabLayout android:id="@+id/panes" android:layout_width="match_parent"
+                    android:layout_height="40dp" app:tabMinWidth="0dp" app:tabMode="fixed" app:tabGravity="fill"
+                    app:tabPaddingStart="2dp" app:tabPaddingEnd="2dp">
+                    <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/monitor_pane_bssids" />
+                    <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/monitor_pane_events" />
+                    <com.google.android.material.tabs.TabItem android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/monitor_pane_handovers" />
+                </com.google.android.material.tabs.TabLayout>
+                <LinearLayout android:id="@+id/bssidPane" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+                    <LinearLayout android:layout_width="match_parent" android:layout_height="34dp" android:gravity="center_vertical">
+                        <TextView android:id="@+id/networkCount" android:layout_width="0dp" android:layout_weight="1"
+                            android:layout_height="wrap_content" android:textSize="13sp" android:includeFontPadding="false" />
+                        <com.google.android.material.checkbox.MaterialCheckBox android:id="@+id/splitBands"
+                            android:layout_width="wrap_content" android:layout_height="match_parent"
+                            android:minHeight="0dp" android:textSize="12sp" android:text="@string/monitor_split"
+                            android:contentDescription="@string/monitor_split_description" />
+                        <com.google.android.material.button.MaterialButton android:id="@+id/filterButton"
+                            style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content"
+                            android:layout_height="match_parent" android:minHeight="0dp" android:minWidth="0dp"
+                            android:insetTop="0dp" android:insetBottom="0dp" android:paddingHorizontal="8dp"
+                            android:textSize="12sp" android:text="@string/monitor_filter" />
                     </LinearLayout>
-                </HorizontalScrollView>
+                    <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/monitor_table_hint"
+                        android:textSize="10sp" android:includeFontPadding="false" android:paddingBottom="2dp" />
+                    <TextView android:id="@+id/empty" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:text="@string/monitor_empty" android:paddingVertical="8dp" android:textSize="12sp" />
+                    <HorizontalScrollView android:id="@+id/tableScroll" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:fillViewport="true" android:scrollbars="horizontal">
+                        <LinearLayout android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+                            <include android:id="@+id/tableHeader" layout="@layout/item_wifi_network" />
+                            <androidx.recyclerview.widget.RecyclerView android:id="@+id/networks" android:layout_width="@dimen/monitor_table_min_width"
+                                android:layout_height="420dp" android:scrollbars="vertical" android:nestedScrollingEnabled="true" />
+                        </LinearLayout>
+                    </HorizontalScrollView>
+                </LinearLayout>
+                <LinearLayout android:id="@+id/logPane" android:layout_width="match_parent" android:layout_height="wrap_content"
+                    android:orientation="vertical" android:visibility="gone">
+                    <TextView android:id="@+id/probeStatus" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textSize="12sp" android:paddingVertical="3dp" />
+                    <TextView android:id="@+id/logEmpty" android:layout_width="match_parent" android:layout_height="wrap_content"
+                        android:textSize="12sp" android:paddingVertical="4dp" />
+                    <androidx.recyclerview.widget.RecyclerView android:id="@+id/logRows" android:layout_width="match_parent"
+                        android:layout_height="420dp" android:scrollbars="vertical" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>

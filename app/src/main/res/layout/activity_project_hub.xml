@@ -29,14 +29,39 @@
             android:layout_height="72dp"
             android:importantForAccessibility="no"
             android:src="@mipmap/ic_launcher" />
-        <Space android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/wifiMonitorButton"
-            style="@style/Widget.Material3.Button.OutlinedButton"
-            android:layout_width="wrap_content"
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/monitor_title"
-            app:icon="@drawable/ic_wifi_monitor" />
+            android:layout_weight="1">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/wifiMonitorButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/monitor_title"
+                app:icon="@drawable/ic_wifi_monitor" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/iperfButton"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/iperf_title" />
+
+            <androidx.constraintlayout.helper.widget.Flow
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                app:constraint_referenced_ids="wifiMonitorButton,iperfButton"
+                app:flow_horizontalBias="1"
+                app:flow_horizontalGap="4dp"
+                app:flow_horizontalStyle="packed"
+                app:flow_wrapMode="chain"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
 
         <TextView

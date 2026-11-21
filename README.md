@@ -20,6 +20,7 @@ Select a screenshot to view it at full resolution.
 *   **Interactive Floor Plan:** Load any image as a floor plan, with support for zoom and pan.
 *   **Local Project Hub:** Create a project, open an ESX file, or continue one of the most recently used local projects.
 *   **Wi-Fi Scanner (experimental):** Open a standalone monitor from Project Hub with connected RSSI history, channel-width diagrams, BSSID filters, and public Android network/IE details.
+*   Open **iperf3** beside the scanner to run a TCP or UDP test against your own iperf3 server. Choose upload or reverse (download), duration, parallel streams and report interval. An empty or zero interval shows the final summary only. Edit the displayed command to run other iperf3 client options. Flags appended to the generated command stay in place when you change a field.
 *   **Project Status and Management:** Recent projects expose explicit loading/error states and a confirmed local-delete action. The survey screen shows active-floor counts and complete-project export results.
 *   **Multi-floor Projects:** Import every supported floor from an ESX archive, switch floors while surveying, and add new named floor plans.
 *   **Two Survey Modes:**
@@ -85,7 +86,13 @@ This is a debug-signed APK (`com.example.wiprober.debug`), not a production-sign
 2. **Disable Wi-Fi scan throttling** in Developer Options. This mode is blocked until throttling is off; the setup dialog links to Developer Options.
 3. Enable Wi-Fi and Location Services, and grant **Precise location** while using the app. Scans refresh automatically while this screen is visible. **Pause** freezes scans and signal history.
 4. Expand **Channel distribution** for 2.4/5/6 GHz rectangles showing channel width and RSSI. An 80+80 MHz network occupies two rectangles. Unsupported widths or missing centre frequencies are not guessed. The 5 GHz axis is split into 36–64 and 100–177, omitting the 68–96 gap. Filters apply to both the diagram and table.
-5. Filter by SSID substring, band, primary channel, or minimum RSSI. The table lists individual BSSIDs, strongest first; swipe horizontally for security and SSID, or tap a row for full-screen details. Back returns to the same list and filters.
+5. Filter by SSID substring, one or more bands, primary channel, or minimum RSSI. **Split** groups matching BSSIDs by band in 6, 5, then 2.4 GHz order and hides empty groups. Rows are sorted by signal strength. The **Sec** column uses the WPA generation followed by **P** for Personal or **E** for Enterprise. A slash separates advertised modes, such as **2P/3P**. **OWE-T** denotes OWE transition and **?** denotes unknown security. Tap a row for the full SSID and security names. Back returns to the same list and filters.
+
+Select **Wi-Fi Events** or **Handovers** to replace the BSSID table with the live log. Numbered marks on the RSSI graph match the observed BSSID changes. Handovers list same-SSID AP transitions with the old and new channel and signal. Network switches and MLO link changes are identified separately in Events.
+
+The BSSID table shows a short vendor name followed by the last three octets, for example `Ruckus:09:24:4C`. Network details show the full address and registered company name. Lookup is offline and uses the longest matching IEEE assignment. Unknown, private and locally administered addresses retain all six octets. The bundled registry comes from the [MACLookup JSON download](https://maclookup.app/downloads/json-database). To refresh it, download the JSON and run `python3 tools/build_mac_vendors.py /path/to/database.json` before building the app.
+
+While monitoring, the phone checks its local Wi-Fi gateway with ICMP echo approximately every 250 ms. A handover reports the longest interval between successful replies around the transition when checks went unanswered. This measures observed IP reachability. A transition with no missed checks, or without a comparable responding gateway, is labelled accordingly. Pausing or leaving the scanner stops the checks.
 
 The connection graph samples the primary Wi-Fi connection once per second and keeps two minutes of history. Its axis shows seconds since scanning started, and the current connection is the compact legend below it. Roaming, disconnects, and time spent away from the screen leave gaps. Failed scans preserve the previous results and their scan age. Scanner data stays in memory and is separate from project measurements and ESX export.
 

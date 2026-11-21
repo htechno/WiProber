@@ -10,10 +10,11 @@ internal object WifiNetworkDetailsText {
         return buildString {
             appendLine("${s(R.string.monitor_ssid)}: ${t.ssid(network.ssid)}")
             appendLine("${s(R.string.monitor_bssid)}: ${network.bssid}")
+            network.vendor?.let { appendLine(s(R.string.monitor_vendor, it.fullName)) }
             appendLine(s(R.string.monitor_dbm, network.rssi))
             appendLine(s(R.string.monitor_details_radio, network.frequencyMhz, network.channel?.toString() ?: t.unknown(),
                 t.width(network), t.frequency(network.center0Mhz), t.frequency(network.center1Mhz), t.standard(network.standard)))
-            appendLine(t.security(network))
+            appendLine(t.security(network.security))
             appendLine(s(R.string.monitor_details_age, ((nowMillis * 1000 - network.seenAtMicros) / 1_000_000).coerceAtLeast(0), network.seenAtMicros))
             appendLine(s(R.string.monitor_details_flags, t.yesNo(network.responder80211mc), t.yesNo(network.responder80211az), t.yesNo(network.passpoint)))
             appendLine(s(R.string.monitor_details_modern_flags, t.yesNo(network.twtResponder),

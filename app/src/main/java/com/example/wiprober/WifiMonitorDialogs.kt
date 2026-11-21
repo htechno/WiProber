@@ -2,12 +2,13 @@ package com.example.wiprober
 
 import android.content.Context
 import android.text.InputType
-import android.widget.ArrayAdapter
+import android.view.LayoutInflater
 import android.widget.LinearLayout
 import android.widget.ScrollView
-import android.widget.Spinner
 import android.widget.TextView
 import androidx.appcompat.app.AlertDialog
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -26,17 +27,17 @@ internal object WifiMonitorDialogs {
             return edit
         }
         val ssid = input(R.string.monitor_filter_ssid, current.ssid, InputType.TYPE_CLASS_TEXT)
-        val bands = listOf(null) + WifiBand.entries
         val text = WifiMonitorText(context)
         column.addView(TextView(context).apply { setText(R.string.monitor_band) })
-        val band = Spinner(context).apply {
-            adapter = ArrayAdapter(context, android.R.layout.simple_spinner_dropdown_item,
-                bands.map { it?.let(text::band) ?: context.getString(R.string.monitor_all_bands) })
-            setSelection(bands.indexOf(current.band))
-            contentDescription = context.getString(R.string.monitor_band)
-            minimumHeight = (48 * density).toInt()
+        val group = ChipGroup(context)
+        column.addView(group)
+        val bandChips = WifiBand.descending.asReversed().associateWith { band ->
+            val chip = LayoutInflater.from(context).inflate(R.layout.item_wifi_band_filter, group, false) as Chip
+            chip.text = text.band(band)
+            group.addView(chip)
+            chip.isChecked = band in current.bands
+            chip
         }
-        column.addView(band)
         val channel = input(R.string.monitor_filter_channel, current.channel?.toString().orEmpty(), InputType.TYPE_CLASS_NUMBER)
         val rssi = input(R.string.monitor_filter_rssi, current.minimumRssi?.toString().orEmpty(),
             InputType.TYPE_CLASS_NUMBER or InputType.TYPE_NUMBER_FLAG_SIGNED)
@@ -57,7 +58,8 @@ internal object WifiMonitorDialogs {
                     rssiValue.isNotEmpty() && (parsedRssi == null || parsedRssi !in -126..0) ->
                         rssi.error = context.getString(R.string.monitor_filter_invalid)
                     else -> {
-                        onApply(WifiMonitorFilter(ssid.text.toString(), bands[band.selectedItemPosition], parsedChannel, parsedRssi))
+                        val bands = bandChips.filterValues { it.isChecked }.keys.toSet()
+                        onApply(WifiMonitorFilter(ssid.text.toString(), bands, parsedChannel, parsedRssi))
                         dialog.dismiss()
                     }
                 }

@@ -10,13 +10,13 @@ class WifiMonitorTest {
 
     @Test fun frequencyFixturesIncludeBandEdgesAndSpecialChannels() {
         listOf(2412 to 1, 2472 to 13, 2484 to 14, 4920 to 184, 5180 to 36, 5825 to 165,
-            5935 to 2, 5955 to 1, 7115 to 233, 58320 to 1, 69120 to 6).forEach { (mhz, channel) ->
+            5935 to 2, 5955 to 1, 7115 to 233).forEach { (mhz, channel) ->
             assertEquals("$mhz MHz", channel, WifiRadioModel.channel(mhz))
         }
-        listOf(0, 2401, 2413, 5900, 5940, 7116, 8000).forEach { assertNull(WifiRadioModel.channel(it)) }
+        listOf(0, 2401, 2413, 5900, 5940, 7116, 8000, 58320, 69120).forEach { assertNull(WifiRadioModel.channel(it)) }
         assertEquals(WifiBand.GHZ_6, WifiRadioModel.band(5935))
         assertEquals(WifiBand.GHZ_5, WifiRadioModel.band(4920))
-        assertEquals(WifiBand.GHZ_60, WifiRadioModel.band(58320))
+        assertFalse(WifiRadioModel.band(58320) in WifiBand.supported)
         assertEquals(WifiBand.UNKNOWN, WifiRadioModel.band(5900))
     }
 
@@ -57,10 +57,34 @@ class WifiMonitorTest {
         val b = network(bssid = "10:20:30:40:50:61", rssi = -40)
         val c = network(bssid = "10:20:30:40:50:62", ssid = "Office guest", frequency = 2412)
         assertEquals(listOf(b, c, a), WifiMonitorFilter().apply(listOf(a, b, c)))
-        assertEquals(listOf(b), WifiMonitorFilter("oFfIcE", WifiBand.GHZ_5, 36, -60).apply(listOf(a, b, c)))
+        assertEquals(listOf(b), WifiMonitorFilter("oFfIcE", setOf(WifiBand.GHZ_5), 36, -60).apply(listOf(a, b, c)))
         assertEquals("AA:BB:CC:DD:EE:FF", WifiRadioModel.normalizeBssid("aa:bb:cc:dd:ee:ff"))
         assertNull(WifiRadioModel.normalizeBssid("02:00:00:00:00:00"))
         assertNull(WifiRadioModel.normalizeBssid("invalid"))
+    }
+
+    @Test fun splitShowsOnlyPopulatedMatchingBandsAndPreservesSignalOrder() {
+        val five = network(rssi = -40)
+        val weakerFive = five.copy(bssid = "10:20:30:40:50:61", rssi = -80)
+        val two = five.copy(bssid = "10:20:30:40:50:62", frequencyMhz = 2412, rssi = -30)
+        val unsupported = five.copy(bssid = "10:20:30:40:50:63", frequencyMhz = 60480)
+        val networks = listOf(weakerFive, unsupported, five, two)
+        val filter = WifiMonitorFilter()
+        val sorted = filter.apply(networks)
+        assertEquals(listOf(two, five, weakerFive), sorted)
+        assertEquals(sorted.map { WifiTableRow.Network(it, showBand = true) }, wifiTableRows(sorted, split = false))
+        assertEquals(listOf(WifiTableRow.Section(WifiBand.GHZ_5, 2),
+            WifiTableRow.Network(five, showBand = false), WifiTableRow.Network(weakerFive, showBand = false),
+            WifiTableRow.Section(WifiBand.GHZ_2_4, 1), WifiTableRow.Network(two, showBand = false)), wifiTableRows(sorted, split = true))
+
+        val selected = setOf(WifiBand.GHZ_5, WifiBand.GHZ_6)
+        val six = two.copy(frequencyMhz = 5955)
+        val narrowed = WifiMonitorFilter(bands = selected, minimumRssi = -70).apply(networks + six)
+        assertEquals(listOf(six, five), narrowed)
+        assertEquals(listOf(WifiTableRow.Section(WifiBand.GHZ_6, 1), WifiTableRow.Network(six, showBand = false),
+            WifiTableRow.Section(WifiBand.GHZ_5, 1), WifiTableRow.Network(five, showBand = false)), wifiTableRows(narrowed, split = true))
+        assertTrue(WifiMonitorFilter(bands = emptySet()).apply(networks).isEmpty())
+        assertTrue(wifiTableRows(emptyList(), split = true).isEmpty())
     }
 
     @Test fun throttleIsAHardGateAndFailuresDoNotRefreshResultsOrAge() {

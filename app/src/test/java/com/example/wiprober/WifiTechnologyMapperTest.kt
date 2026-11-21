@@ -22,14 +22,10 @@ class WifiTechnologyMapperTest {
     }
 
     @Test
-    fun mapsWifi7AndWigigExplicitly() {
+    fun mapsWifi7OnSixGhz() {
         assertEquals(
             listOf("AX", "BE"),
             WifiTechnologyMapper.map(ScanResult.WIFI_STANDARD_11BE, 6_115)
-        )
-        assertEquals(
-            listOf("AD"),
-            WifiTechnologyMapper.map(ScanResult.WIFI_STANDARD_11AD, 60_480)
         )
     }
 }

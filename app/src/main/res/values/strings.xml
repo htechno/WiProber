@@ -227,6 +227,7 @@
     <string name="monitor_channels_description">Channel widths and RSSI of filtered networks in 2.4, 5 and 6 GHz. Missing centre frequencies are not estimated.</string>
     <string name="monitor_channels_summary">%1$d of %2$d filtered BSSIDs have channel geometry. Details are in the table.</string>
     <string name="monitor_disconnected">Not connected to Wi-Fi</string>
+    <string name="monitor_current_connection">Current Wi-Fi connection</string>
     <string name="monitor_connection_radio">%1$s · Ch %2$s · %3$d MHz</string>
     <string name="monitor_connection_speed">Link %1$s · Tx %2$s · Rx %3$s</string>
     <string name="monitor_last_scan">Last scan: %1$d s ago</string>
@@ -234,10 +235,13 @@
     <string name="monitor_filter">Filter</string>
     <string name="monitor_filter_active">Filter · active</string>
     <string name="monitor_network_count">BSSIDs · %1$d / %2$d</string>
-    <string name="monitor_table_hint">Strongest signal first · swipe sideways for more columns</string>
+    <string name="monitor_table_hint">Strongest signal first · 1–3 = WPA version · P = Personal · E = Enterprise</string>
     <string name="monitor_empty">No networks to display. Check scan access or adjust filters.</string>
     <string name="monitor_ssid">SSID</string>
     <string name="monitor_bssid">BSSID</string>
+    <string name="monitor_vendor_bssid" translatable="false">%1$s:%2$s</string>
+    <string name="monitor_vendor_bssid_accessibility">%1$s, BSSID %2$s</string>
+    <string name="monitor_vendor">Vendor · %1$s</string>
     <string name="monitor_band">Band</string>
     <string name="monitor_channel">Channel</string>
     <string name="monitor_width">Width</string>
@@ -246,7 +250,9 @@
     <string name="monitor_filter_ssid">SSID contains</string>
     <string name="monitor_filter_channel">Primary channel (empty = all)</string>
     <string name="monitor_filter_rssi">Minimum RSSI, dBm (−126 to 0)</string>
-    <string name="monitor_all_bands">All bands</string>
+    <string name="monitor_split">Split</string>
+    <string name="monitor_split_description">Split table by band</string>
+    <string name="monitor_band_section">%1$s (%2$d)</string>
     <string name="monitor_filter_invalid">Enter a positive channel and RSSI from −126 to 0, or leave blank.</string>
     <string name="monitor_apply">Apply</string>
     <string name="monitor_reset">Reset</string>
@@ -256,7 +262,6 @@
     <string name="monitor_band_24">2.4 GHz</string>
     <string name="monitor_band_5">5 GHz</string>
     <string name="monitor_band_6">6 GHz</string>
-    <string name="monitor_band_60">60 GHz</string>
     <string name="monitor_dbm">%1$d dBm</string>
     <string name="monitor_mhz">%1$d MHz</string>
     <string name="monitor_mbps">%1$d Mbps</string>
@@ -265,7 +270,6 @@
     <string name="monitor_standard_n">Wi-Fi 4 · 802.11n</string>
     <string name="monitor_standard_ac">Wi-Fi 5 · 802.11ac</string>
     <string name="monitor_standard_ax">Wi-Fi 6 · 802.11ax</string>
-    <string name="monitor_standard_ad">WiGig · 802.11ad</string>
     <string name="monitor_standard_be">Wi-Fi 7 · 802.11be</string>
     <string name="monitor_security_open">Open</string>
     <string name="monitor_security_wep">WEP</string>
@@ -277,6 +281,15 @@
     <string name="monitor_security_wpa3_eap">WPA3 Enterprise</string>
     <string name="monitor_security_owe">OWE</string>
     <string name="monitor_security_owe_transition">OWE transition</string>
+    <string name="monitor_table_security">Sec</string>
+    <string name="monitor_short_wpa_p" translatable="false">1P</string>
+    <string name="monitor_short_wpa_e" translatable="false">1E</string>
+    <string name="monitor_short_wpa2_p" translatable="false">2P</string>
+    <string name="monitor_short_wpa2_e" translatable="false">2E</string>
+    <string name="monitor_short_wpa3_p" translatable="false">3P</string>
+    <string name="monitor_short_wpa3_e" translatable="false">3E</string>
+    <string name="monitor_short_owe_transition" translatable="false">OWE-T</string>
+    <string name="monitor_short_unknown" translatable="false">\?</string>
     <string name="monitor_details">Network details</string>
     <string name="monitor_details_radio">Primary frequency: %1$d MHz\nPrimary channel: %2$s\nWidth: %3$s\nCentre 0: %4$s\nCentre 1: %5$s\n%6$s</string>
     <string name="monitor_details_age">Last seen: %1$d s ago\nScan timestamp: %2$d μs since boot</string>
@@ -332,7 +345,6 @@
     <string name="monitor_band_short_24">2.4</string>
     <string name="monitor_band_short_5">5</string>
     <string name="monitor_band_short_6">6</string>
-    <string name="monitor_band_short_60">60</string>
     <string name="monitor_width_short_80_80">80+80</string>
     <string name="monitor_details_modern_flags">TWT responder: %1$s\nSecure HE-LTF: %2$s\nRanging frame protection required: %3$s</string>
     <string name="monitor_chart_seconds">%1$d s</string>
@@ -364,4 +376,86 @@
     <string name="uncalibrated_export_message">These floors have no confirmed scale:\n\n%1$s\n\nExport will use an assumed scale of 0.025 metres per pixel for these floors. Distances in Ekahau may be incorrect. Cancel, select each listed floor, and use Calibrate scale, or explicitly continue with the assumed scale. This does not mark the floors as calibrated.</string>
     <string name="export_with_assumed_scale">Use assumed scale</string>
     <string name="cancel_export">Cancel export</string>
+    <string name="monitor_pane_bssids">BSSIDs</string>
+    <string name="monitor_pane_events">Wi-Fi Events</string>
+    <string name="monitor_pane_handovers">Handovers</string>
+    <string name="monitor_no_events">Waiting for Wi-Fi events…</string>
+    <string name="monitor_no_handovers">No handovers observed.</string>
+    <string name="monitor_change_number">#%1$d</string>
+    <string name="monitor_log_time">%1$.3f s   %2$s</string>
+    <string name="monitor_log_ap">%1$s · ch %2$s · %3$d dBm</string>
+    <string name="monitor_log_change">#%1$d %2$s · %3$s\n%4$s\n→ %5$s</string>
+    <string name="monitor_handover">Handover</string>
+    <string name="monitor_network_switch">Network change</string>
+    <string name="monitor_mlo_change">MLO link change</string>
+    <string name="monitor_gap_pending">Waiting for gateway replies…</string>
+    <string name="monitor_gap_unknown">Reply gap unavailable</string>
+    <string name="monitor_gap_no_miss">No missed gateway replies</string>
+    <string name="monitor_gap_measured">Longest gap between replies: %1$d ms · checks without a reply: %2$d</string>
+    <string name="monitor_echo_status">Gateway %1$s · %2$s · every %3$d ms</string>
+    <string name="monitor_echo_reply">reply</string>
+    <string name="monitor_echo_timeout">no reply</string>
+    <string name="monitor_echo_no_route">no Wi-Fi route</string>
+    <string name="monitor_echo_unknown">unavailable</string>
+    <string name="monitor_log_connected">Connected · %1$s · %2$s</string>
+    <string name="monitor_log_disconnected">Wi-Fi association lost</string>
+    <string name="monitor_log_phase">Supplicant · %1$s</string>
+    <string name="monitor_log_state">Wi-Fi state · %1$s</string>
+    <string name="monitor_log_available">Wi-Fi network %1$d available</string>
+    <string name="monitor_log_lost">Wi-Fi network %1$d lost</string>
+    <string name="monitor_log_ip">Wi-Fi %1$d · IP %2$s · gateway %3$s · DNS %4$s</string>
+    <string name="monitor_log_validation">Wi-Fi %1$d · %2$s</string>
+    <string name="monitor_log_captive">captive portal</string>
+    <string name="monitor_log_validated">internet validated</string>
+    <string name="monitor_log_unvalidated">internet unvalidated</string>
+    <string name="monitor_log_ready">Scan access ready</string>
+    <string name="monitor_log_started">Monitoring started</string>
+    <string name="monitor_log_stopped">Monitoring paused</string>
+    <string name="monitor_log_scan_done">Fresh scan results · %1$d BSSIDs</string>
+    <string name="monitor_log_scan_start">Scan requested</string>
+    <string name="monitor_log_scan_rejected">Scan request rejected</string>
+    <string name="monitor_log_scan_timeout">Scan timed out</string>
+    <string name="monitor_log_scan_unavailable">Scan unavailable</string>
+    <string name="monitor_log_system_scan">System scan results updated</string>
+    <string name="monitor_log_system_scan_stale">System scan returned no fresh results</string>
+    <string name="monitor_probe_stopped">Gateway checks paused</string>
+    <string name="monitor_log_names">%1$s → %2$s</string>
+    <string name="monitor_signal_markers">" · BSSID changes: %1$d"</string>
+    <string name="iperf_title" translatable="false">iperf3</string>
+    <string name="iperf_default_port" translatable="false">5201</string>
+    <string name="iperf_default_duration" translatable="false">10</string>
+    <string name="iperf_default_one" translatable="false">1</string>
+    <string name="iperf_server">Server IP or hostname</string>
+    <string name="iperf_port">Port</string>
+    <string name="iperf_tcp" translatable="false">TCP</string>
+    <string name="iperf_udp" translatable="false">UDP</string>
+    <string name="iperf_reverse">Download (reverse)</string>
+    <string name="iperf_duration">Duration (s)</string>
+    <string name="iperf_streams">Parallel streams</string>
+    <string name="iperf_interval">Report interval (s)</string>
+    <string name="iperf_interval_help">0 or empty for summary only</string>
+    <string name="iperf_bitrate">Mbit/s per stream</string>
+    <string name="iperf_command">iperf3 command</string>
+    <string name="iperf_use_fields">Rebuild from fields</string>
+    <string name="iperf_command_quoting">Close the quote or complete the escape at the end of the command.</string>
+    <string name="iperf_command_program">Start the command with iperf3.</string>
+    <string name="iperf_command_empty">Add client options, for example -c 192.168.0.1.</string>
+    <string name="iperf_command_nul">Remove the null character from the command.</string>
+    <string name="iperf_client_only">Use -c HOST to run a foreground client test.</string>
+    <string name="iperf_file_path">For file options, use a file name in the iperf3 cache directory.</string>
+    <string name="iperf_start">Start test</string>
+    <string name="iperf_stop">Stop test</string>
+    <string name="iperf_output">Output</string>
+    <string name="iperf_ready">Ready</string>
+    <string name="iperf_running">Running…</string>
+    <string name="iperf_stopping">Stopping…</string>
+    <string name="iperf_stopped">Stopped</string>
+    <string name="iperf_complete">Completed</string>
+    <string name="iperf_failed">Test failed</string>
+    <string name="iperf_invalid_host">Enter an IP address or hostname.</string>
+    <string name="iperf_invalid_port">Enter a port from 1 to 65535.</string>
+    <string name="iperf_invalid_duration">Enter 1 to 86400 seconds.</string>
+    <string name="iperf_invalid_streams">Enter 1 to 128 streams.</string>
+    <string name="iperf_invalid_interval">Enter 0 or a value from 0.1 to 60 seconds.</string>
+    <string name="iperf_invalid_bitrate">Enter a positive bitrate in Mbit/s.</string>
 </resources>

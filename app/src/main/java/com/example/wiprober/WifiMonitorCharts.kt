@@ -14,6 +14,7 @@ class WifiSignalChartView @JvmOverloads constructor(context: Context, attrs: Att
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val path = Path()
     private var samples: List<WifiSignalSample> = emptyList()
+    private var changes: List<ApChange> = emptyList()
     private var now = 0L
     private var sessionStart = 0L
     private val density = resources.displayMetrics.density
@@ -21,13 +22,16 @@ class WifiSignalChartView @JvmOverloads constructor(context: Context, attrs: Att
     private val ink get() = MaterialColors.getColor(this, com.google.android.material.R.attr.colorOnSurface)
     private val accent get() = MaterialColors.getColor(this, com.google.android.material.R.attr.colorPrimary)
 
-    internal fun submit(history: List<WifiSignalSample>, elapsedMillis: Long, startedAtMillis: Long?) {
+    internal fun submit(history: List<WifiSignalSample>, elapsedMillis: Long, startedAtMillis: Long?, changes: List<ApChange>) {
+        this.changes = changes
         samples = history
         now = elapsedMillis
         sessionStart = startedAtMillis ?: elapsedMillis
         val current = history.lastOrNull()?.rssi?.let { context.getString(R.string.monitor_dbm, it) }
             ?: context.getString(R.string.monitor_not_available)
-        contentDescription = context.getString(R.string.monitor_signal_accessibility, current)
+        val visible = changes.count { it.at in (now - 120_000)..now }
+        contentDescription = context.getString(R.string.monitor_signal_accessibility, current) +
+            if (visible > 0) context.getString(R.string.monitor_signal_markers, visible) else ""
         invalidate()
     }
 
@@ -74,6 +78,22 @@ class WifiSignalChartView @JvmOverloads constructor(context: Context, attrs: Att
         }
         paint.color = accent; paint.style = Paint.Style.STROKE; paint.strokeWidth = 2 * density
         canvas.drawPath(path, paint)
+        paint.style = Paint.Style.FILL
+        paint.color = MaterialColors.getColor(this, com.google.android.material.R.attr.colorTertiary)
+        paint.strokeWidth = density
+        var lastLabelEnd = Float.NEGATIVE_INFINITY
+        for (change in changes) {
+            val elapsed = change.at - sessionStart
+            if (elapsed !in axis.startMillis..axis.endMillis) continue
+            val x = left + axis.fraction(elapsed) * (right - left)
+            canvas.drawLine(x, top, x, bottom, paint)
+            val label = context.getString(R.string.monitor_change_number, change.number)
+            val labelX = (x + 2 * density).coerceAtMost(right - paint.measureText(label))
+            if (labelX > lastLabelEnd) {
+                canvas.drawText(label, labelX, top + paint.textSize, paint)
+                lastLabelEnd = labelX + paint.measureText(label) + 2 * density
+            }
+        }
         canvas.restore()
         paint.style = Paint.Style.FILL
         if (samples.none { it.rssi != null && now - it.elapsedMillis <= 120_000 }) {

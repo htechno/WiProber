@@ -348,7 +348,7 @@ internal class WifiScanner(
             WifiScanBroadcastDecision.Ignored -> Unit
             is WifiScanBroadcastDecision.Accepted -> complete(
                 decision.operationId,
-                WifiScanOutcome.Success(decision.operationId, results)
+                WifiScanOutcome.Success(decision.operationId, results.filter { WifiRadioModel.band(it.frequency) in WifiBand.supported })
             )
         }
     }

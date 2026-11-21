@@ -1,0 +1,14 @@
+<resources>
+    <style name="IperfField" parent="Widget.Material3.TextInputLayout.OutlinedBox.Dense">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:layout_marginHorizontal">3dp</item>
+    </style>
+    <style name="IperfEdit" parent="Widget.Material3.TextInputEditText.OutlinedBox.Dense">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+</resources>

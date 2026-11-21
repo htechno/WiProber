@@ -55,6 +55,12 @@ android {
         viewBinding = true
     }
 
+    // ProcessBuilder launches iperf3 from the installer's executable native library directory.
+    packaging.jniLibs {
+        useLegacyPackaging = true
+        keepDebugSymbols += "**/libiperf3_exec.so" // Already stripped by the NDK build.
+    }
+
     // Universal APK configuration - includes all ABIs
     splits {
         abi {
