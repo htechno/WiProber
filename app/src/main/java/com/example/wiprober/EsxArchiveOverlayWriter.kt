@@ -63,7 +63,7 @@ internal class EsxArchiveOverlayWriter(
             if (floor.importedFromSource) {
                 val original = floorArray.objects().firstOrNull { it.string("id") == floor.esxFloorPlanId }
                     ?: throw IllegalArgumentException("A source floor plan is missing from floorPlans.json")
-                val currentScale = floor.survey.metersPerUnit ?: generated.metersPerUnit
+                val currentScale = generated.metersPerUnit
                 if (!sameScale(currentScale, floor.sourceMetersPerUnit)) {
                     original.addProperty("metersPerUnit", currentScale)
                     floorPlansChanged = true

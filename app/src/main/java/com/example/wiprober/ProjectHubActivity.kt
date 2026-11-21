@@ -95,6 +95,13 @@ class ProjectHubActivity : AppCompatActivity() {
         binding.wifiMonitorButton.setOnClickListener {
             if (!isBusy) startActivity(Intent(this, WifiMonitorActivity::class.java))
         }
+        binding.privacyPolicyButton.setOnClickListener {
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.privacy_policy_title)
+                .setMessage(R.string.privacy_policy_body)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+        }
         binding.newProjectButton.setOnClickListener {
             if (!isBusy) selectMapLauncher.launch(arrayOf("image/*"))
         }

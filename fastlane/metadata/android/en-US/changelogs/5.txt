@@ -1,0 +1,4 @@
+Privacy policy now follows English/Russian app language.
+Wi-Fi permission recovery explains precise location and links to app settings, preserving the requested survey mode.
+Export warns about every uncalibrated floor before using an assumed scale. Valid imported scales are retained.
+Imported ESX measurements remain opaque and unchanged.

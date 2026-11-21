@@ -29,7 +29,7 @@ class EsxProjectImporterTest {
         val project = projects.single()
         assertEquals("Fixture project", project.projectName)
         assertEquals("Level 1", project.floorName)
-        assertEquals(0.05, project.metersPerUnit, 0.0)
+        assertEquals(0.05, requireNotNull(project.metersPerUnit), 0.0)
         assertEquals(1, project.scanPoints.size)
         assertEquals(0, project.continuousScanSessions.size)
         assertEquals(true, project.scanPoints.single().importedFromEsx)
@@ -188,8 +188,21 @@ class EsxProjectImporterTest {
         assertEquals(1, project.scanPoints.size)
     }
 
+    @Test
+    fun missingOrInvalidImportedScaleRemainsUnconfirmedButValidDefaultIsAccepted() {
+        listOf("null", "0", "-1", "0.025", "0.05").forEachIndexed { index, scale ->
+            val project = EsxProjectImporter().import(
+                ByteArrayInputStream(esxArchive(scaleJson = scale)),
+                File(temporaryFolder.root, "scale-$index")
+            ).single()
+            val expected = scale.toDoubleOrNull()?.takeIf { it > 0 }
+            assertEquals(expected, project.metersPerUnit)
+        }
+    }
+
     private fun esxArchive(
         routeType: String = "STOP_AND_GO",
+        scaleJson: String = "0.05",
         trackBytes: ByteArray = BinaryDataSerializer.serialize(
             listOf(BinaryDataSerializer.MeasurementEntry(150, 0, network()))
         )
@@ -229,7 +242,7 @@ class EsxProjectImporterTest {
                   "width":1000,
                   "height":500,
                   "imageId":"map-1",
-                  "metersPerUnit":0.05
+                  "metersPerUnit":$scaleJson
                 }]}
             """.trimIndent().toByteArray(),
             "images.json" to """

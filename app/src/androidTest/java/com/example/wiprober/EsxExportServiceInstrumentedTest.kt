@@ -187,12 +187,43 @@ class EsxExportServiceInstrumentedTest {
         file
     )
 
-    private fun writeSourceArchive(destination: File) {
+    @Test
+    fun importedMissingScaleStaysUnconfirmedAndOnlyFloorCatalogueChangesOnExport() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val directory = File(context.cacheDir, "fdroid-missing-scale-test").apply { mkdirs() }
+        try {
+            val source = File(directory, "source.esx")
+            writeSourceArchive(source, scaleJson = "null")
+            val original = readZip(source)
+            val imported = EsxProjectImporter().import(source, File(directory, "extracted"))
+            assertEquals(null, imported.single().metersPerUnit)
+            val repository = ProjectRepository(context, projectsRoot = File(directory, "projects"))
+            val project = repository.importProject(imported, source)
+            val snapshot = repository.snapshotProject(project.id)
+            assertEquals(1, FloorScalePolicy.uncalibratedFloors(snapshot).size)
+            val exported = File(directory, "export.esx").apply { createNewFile() }
+            EsxExportService(context).export(fileUri(context, exported), snapshot)
+            val result = readZip(exported)
+            original.filterKeys { it != "floorPlans.json" }.forEach { (name, bytes) ->
+                assertArrayEquals("Changed untouched source entry: $name", bytes, result.getValue(name))
+            }
+            val floor = JsonParser.parseString(result.getValue("floorPlans.json").toString(Charsets.UTF_8))
+                .asJsonObject.getAsJsonArray("floorPlans").single().asJsonObject
+            assertEquals(0.025, floor.get("metersPerUnit").asDouble, 0.0)
+            assertEquals("keep", floor.get("future").asString)
+            assertEquals(null, ProjectRepository(context, projectsRoot = File(directory, "projects"))
+                .openProject(project.id).activeFloor.metersPerUnit)
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    private fun writeSourceArchive(destination: File, scaleJson: String = "0.05") {
         val entries = linkedMapOf(
             "project.json" to """{"project":{"id":"source-project","title":"Source","future":"keep"}}""".toByteArray(),
             "floorPlans.json" to """
                 {"floorPlans":[{"id":"$SOURCE_FLOOR_ID","name":"Source floor","width":20,"height":12,
-                "imageId":"$SOURCE_IMAGE_ID","metersPerUnit":0.05,"future":"keep"}]}
+                "imageId":"$SOURCE_IMAGE_ID","metersPerUnit":$scaleJson,"future":"keep"}]}
             """.trimIndent().toByteArray(),
             "images.json" to """{"images":[{"id":"$SOURCE_IMAGE_ID","imageFormat":"PNG"}]}""".toByteArray(),
             "surveyLookups.json" to """

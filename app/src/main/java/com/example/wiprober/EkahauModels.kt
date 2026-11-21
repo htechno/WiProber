@@ -12,7 +12,9 @@ private const val PROJECT_CONFIG_ID = "ac617491-9beb-4f3a-b600-f0037669c1a9"
 const val WIFI_ADAPTER_ID = "3fb11fa8-4a44-4be9-b588-15d767bd768a"
 
 // ----------- Файл: project.json -----------
+@JsonModel
 data class EsxProjectWrapper(val project: EsxProject)
+@JsonModel
 data class EsxProject(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -30,12 +32,14 @@ data class EsxProject(
     @SerializedName("history") val history: EsxHistory = EsxHistory()
 )
 
+@JsonModel
 data class EsxThumbnail(
     @SerializedName("dataFloorPlanId") val dataFloorPlanId: String,
     @SerializedName("mimeType") val mimeType: String = "image/png",
     @SerializedName("data") val data: String = ""
 )
 
+@JsonModel
 data class EsxHistory(
     @SerializedName("modifiedAt") val modifiedAt: String = getCurrentUtcTime(),
     @SerializedName("modifiedBy") val modifiedBy: String = "WiProber",
@@ -44,7 +48,9 @@ data class EsxHistory(
 )
 
 // ----------- Файл: projectHistorys.json -----------
+@JsonModel
 data class EsxProjectHistorysWrapper(val projectHistorys: List<EsxProjectHistoryEntry>)
+@JsonModel
 data class EsxProjectHistoryEntry(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -60,7 +66,9 @@ data class EsxProjectHistoryEntry(
 )
 
 // ----------- Файл: floorPlans.json -----------
+@JsonModel
 data class EsxFloorPlansWrapper(val floorPlans: List<EsxFloorPlan>)
+@JsonModel
 data class EsxFloorPlan(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -80,7 +88,9 @@ data class EsxFloorPlan(
 )
 
 // ----------- Файл: accessPointMeasurements.json -----------
+@JsonModel
 data class EsxAccessPointMeasurementsWrapper(val accessPointMeasurements: List<EsxAccessPointMeasurement>)
+@JsonModel
 data class EsxAccessPointMeasurement(
     val id: String = UUID.randomUUID().toString(),
     val status: String = "CREATED",
@@ -93,7 +103,9 @@ data class EsxAccessPointMeasurement(
 )
 
 // ----------- Файл: surveyLookups.json -----------
+@JsonModel
 data class EsxSurveyLookupsWrapper(val surveyLookups: List<EsxSurveyLookup>)
+@JsonModel
 data class EsxSurveyLookup(
     val id: String = UUID.randomUUID().toString(),
     val surveyId: String,
@@ -101,7 +113,9 @@ data class EsxSurveyLookup(
 )
 
 // ----------- Файл: survey-*.json -----------
+@JsonModel
 data class EsxSurveysWrapper(val surveys: List<EsxSurvey>)
+@JsonModel
 data class EsxSurvey(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -123,14 +137,18 @@ data class EsxSurvey(
 )
 
 // Класс для поля "history" в survey-*.json
+@JsonModel
 data class EsxSurveyHistory(
     @SerializedName("createdAt") val createdAt: String,
     @SerializedName("createdBy") val createdBy: String = "WiProber"
 )
 
+@JsonModel
 data class RoutePoint(val time: Long, val location: Location)
+@JsonModel
 data class Location(val x: Double, val y: Double)
 
+@JsonModel
 data class WifiTrack(
     @SerializedName("wifiAdapterInformationId") val wifiAdapterInformationId: String = WIFI_ADAPTER_ID,
     @SerializedName("binaryFileId") val binaryFileId: String = UUID.randomUUID().toString(),
@@ -142,7 +160,9 @@ data class WifiTrack(
     @SerializedName("technologies") val technologies: List<String> = emptyList()
 )
 
+@JsonModel
 data class Scanning(val startTime: Long, val endTime: Long)
+@JsonModel
 data class PingSession(
     val requestedAddress: String = "localhost",
     val resolvedAddressVersion: String = "IPV4",
@@ -151,7 +171,9 @@ data class PingSession(
 )
 
 // ----------- Файл: images.json -----------
+@JsonModel
 data class EsxImagesWrapper(val images: List<EsxImage>)
+@JsonModel
 data class EsxImage(
     @SerializedName("id") val id: String,
     @SerializedName("status") val status: String = "CREATED",
@@ -173,8 +195,10 @@ private fun getCurrentUtcTimeForHistory(): String {
 }
 
 // ----------- Файл: accessPoints.json -----------
+@JsonModel
 data class EsxAccessPointsWrapper(val accessPoints: List<EsxAccessPoint>)
 
+@JsonModel
 data class EsxAccessPoint(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -187,8 +211,10 @@ data class EsxAccessPoint(
 )
 
 // ----------- Файл: measuredRadios.json -----------
+@JsonModel
 data class EsxMeasuredRadiosWrapper(val measuredRadios: List<EsxMeasuredRadio>)
 
+@JsonModel
 data class EsxMeasuredRadio(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -197,8 +223,10 @@ data class EsxMeasuredRadio(
 )
 
 // ----------- Файл: notes.json -----------
+@JsonModel
 data class EsxNotesWrapper(val notes: List<EsxNote>)
 
+@JsonModel
 data class EsxNote(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -208,8 +236,10 @@ data class EsxNote(
 )
 
 // ----------- Файл: wifiAdapterInformations.json -----------
+@JsonModel
 data class EsxWifiAdapterInformationsWrapper(val wifiAdapterInformations: List<EsxWifiAdapterInformation>)
 
+@JsonModel
 data class EsxWifiAdapterInformation(
     @SerializedName("id") val id: String = WIFI_ADAPTER_ID, // Используем ту же константу!
     @SerializedName("status") val status: String = "CREATED",
@@ -223,8 +253,10 @@ data class EsxWifiAdapterInformation(
 )
 
 // ----------- Файл: pictureNotes.json -----------
+@JsonModel
 data class EsxPictureNotesWrapper(val pictureNotes: List<EsxPictureNote>)
 
+@JsonModel
 data class EsxPictureNote(
     @SerializedName("id") val id: String = UUID.randomUUID().toString(),
     @SerializedName("status") val status: String = "CREATED",
@@ -232,6 +264,7 @@ data class EsxPictureNote(
     @SerializedName("noteIds") val noteIds: List<String> // Ссылка на ID из notes.json
 )
 
+@JsonModel
 data class EsxNoteLocation(
     @SerializedName("floorPlanId") val floorPlanId: String,
     @SerializedName("coord") val coord: Location

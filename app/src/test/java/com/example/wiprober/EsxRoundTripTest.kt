@@ -53,7 +53,7 @@ class EsxRoundTripTest {
 
         assertEquals(640, imported.mapInfo.width)
         assertEquals(480, imported.mapInfo.height)
-        assertEquals(0.04, imported.metersPerUnit, 0.0)
+        assertEquals(0.04, requireNotNull(imported.metersPerUnit), 0.0)
         assertEquals(true, imported.scanPoints.single().importedFromEsx)
         assertEquals(emptyList<WifiNetworkInfo>(), imported.scanPoints.single().wifiNetworks)
         assertEquals("Round-trip note", imported.notes.single().text)

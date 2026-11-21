@@ -1,4 +1,6 @@
-<resources>
+<!-- Russian currently covers privacy and review-related explanations, not the whole survey UI.
+     Keep English fallback for legacy strings; locale-specific UI tests cover the translated set. -->
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string name="app_name">WiProber</string>
 
     <!-- Buttons -->
@@ -350,4 +352,16 @@
         <item>FT / PSK / SHA-384</item><item>PSK / SHA-384</item><item>PASN</item>
         <item>FT / 802.1X / SHA-384 (unrestricted)</item><item>802.1X / SHA-384</item><item>SAE extended key</item><item>FT / SAE extended key</item>
     </string-array>
+
+    <string name="privacy_policy_title">Privacy policy</string>
+    <string name="privacy_policy_body">Revision date: 12 October 2026.\n\nThe developer and person responsible for data processing in WiProber is Pavel Semenishchev. Contact: wifi.solution.msk@gmail.com.\n\nWiProber is designed for Wi-Fi surveys. The app processes network names and identifiers (SSID and BSSID), signal strength, frequencies, security capabilities, and other information provided by Android. Projects store measurement times, points and routes placed by the user on the map, floor plans, text notes, selected photos, and imported ESX files. Exported files also include information about the device model and Wi-Fi adapter. This data is used to display networks, conduct surveys, and export results.\n\nPrecise and approximate location permissions are required to access Wi-Fi scan results under Android rules. WiProber does not request GPS coordinates: the user sets the position on the floor plan. Scanning is unavailable without the required permissions. Permissions can be revoked in Android settings.\n\nProjects are stored in private app storage on the device until the user deletes them or clears app data. The app contains no advertising, purchases, or analytics services and does not send projects to the developer’s server.\n\nExport is initiated by the user to a location of their choice. The system file picker may include cloud storage. Android system backup is enabled for the app; depending on the device and settings, data may be included in a backup or transferred to another device. These operations are governed by the settings and terms of the respective provider.\n\nTo delete a project, use its menu on the home screen. Clearing app data in Android settings deletes local WiProber data. Exported files, original photos, and system backups must be deleted separately using the respective storage service. The developer has no remote access to local projects.\n\nIf you contact the developer by email, you provide your email address and the contents of your message so that the developer can reply. Do not send floor plans, photos, or survey results that you do not wish to share with the developer. For questions about processing or deleting data you have shared with the developer, contact wifi.solution.msk@gmail.com.\n\nUpdated versions of this policy are published with the app and via the link in its store listing.</string>
+    <string name="precise_location_required_title">Precise location is required for Wi-Fi scanning</string>
+    <string name="precise_location_required_message">Android does not allow Wi-Fi scanning with approximate location alone. Open app settings, select Permissions → Location, allow location access while using the app, and enable Use precise location. Return to WiProber to continue the scan you requested. WiProber does not request GPS coordinates.</string>
+    <string name="open_app_settings">Open app settings</string>
+    <string name="app_settings_unavailable">Could not open app settings. Open Android Settings → Apps → WiProber → Permissions → Location and enable precise location.</string>
+    <string name="checking_export">Checking all floors before export…</string>
+    <string name="uncalibrated_export_title">Some floors are not calibrated</string>
+    <string name="uncalibrated_export_message">These floors have no confirmed scale:\n\n%1$s\n\nExport will use an assumed scale of 0.025 metres per pixel for these floors. Distances in Ekahau may be incorrect. Cancel, select each listed floor, and use Calibrate scale, or explicitly continue with the assumed scale. This does not mark the floors as calibrated.</string>
+    <string name="export_with_assumed_scale">Use assumed scale</string>
+    <string name="cancel_export">Cancel export</string>
 </resources>

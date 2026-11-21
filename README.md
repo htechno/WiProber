@@ -4,12 +4,16 @@
 
 This project was born out of the need for a simple, mobile-first tool for network engineers and enthusiasts to perform quick on-site surveys without expensive, proprietary hardware.
 
-![Screenshot of WiProber App](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_0_info.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_1_map.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_2_note.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_3_scale.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_4_scan.png)
-![](https://github.com/htechno/WiProber/blob/main/docs/Screenshot_5_Signal_Strength.png)
+Version **3.0.0** requires **Android 11 (API 30) or newer**. It adds a project hub, recent projects, multi-floor surveying, and ESX import that preserves original archive contents while adding new surveys.
+
+## Screenshots
+
+| Project hub | Multi-floor survey |
+| :---: | :---: |
+| [<img src="docs/screenshots/v3-project-hub.png" width="320" alt="WiProber v3 project hub with New project, Open ESX project, and a recent two-floor project">](docs/screenshots/v3-project-hub.png) | [<img src="docs/screenshots/v3-continuous-survey.png" width="320" alt="WiProber v3 survey screen with floor selector, survey points, a route, and Continuous mode controls">](docs/screenshots/v3-continuous-survey.png) |
+| Create a project, import an ESX file, or resume recent work. | Switch floors and continue surveying with points, routes, notes, and scale calibration. |
+
+Select a screenshot to view it at full resolution.
 
 ## Features
 
@@ -53,6 +57,14 @@ This is a non-commercial, open-source project. Please be aware of the following 
 2.  Open the project in Android Studio.
 3.  Let Gradle sync and download all dependencies.
 4.  Build and run the application on your device.
+
+### Building an APK on GitHub
+
+Open **Actions → Build APK → Run workflow**, select the branch, and start the build. Pull requests targeting `main` also run this workflow; ordinary pushes and tags do not automatically build or publish a release.
+
+The workflow runs JVM tests and Android lint, builds the app and instrumentation-test APKs, and uploads the app as the **wiprober-debug-apk** artifact. Download that artifact from the successful run and extract **WiProber-debug.apk**. It includes the source commit, APK metadata, and a SHA-256 checksum. Artifacts are retained for 30 days; device tests and the external customer ESX fixture are not run on GitHub.
+
+This is a debug-signed APK (`com.example.wiprober.debug`), not a production-signed release. GitHub runners may generate different debug keys between builds, so an existing debug installation may not accept an update. Export your projects before uninstalling: uninstalling removes app-owned projects and their source archives.
 
 ## How to Use
 
@@ -100,6 +112,26 @@ After importing the `.esx` file into Ekahau Pro, you will need to perform a few 
 1.  **Set "My Networks":** Add Stars in the Network menu.
 2.  **Group Radios:** To group multiple radios (BSSIDs) under a single physical AP, navigate to **Project -> Measurement Grouping Options** and configure the desired grouping logic.
 3.  **Auto-Place Access Points:** To estimate the location of the access points on the map, use the **Auto-Placing** feature.
+
+## Release optimization checks
+
+Release APKs use R8 and resource shrinking. `@JsonModel` marks the reflection-based
+Gson models whose field names and generic types must remain compatible with saved
+projects and ESX catalogues. Apply it to any new model serialized through Gson.
+
+Run the minified storage and export tests on a connected device in a separate
+`com.example.wiprober.r8validation` package (does not replace the installed app):
+
+```sh
+./gradlew connectedR8ValidationAndroidTest -Pr8Validation \
+  -Pandroid.testInstrumentationRunnerArguments.class=com.example.wiprober.ProjectRepositoryInstrumentedTest,com.example.wiprober.EsxExportServiceInstrumentedTest
+```
+
+This opt-in variant inherits release optimization settings and uses the debug
+signing key. Its additional rules retain shared test-runtime dependencies and the public
+methods/constructors called from the separate instrumentation APK;
+project/ESX model rules are identical to release. Production releases do not use
+these instrumentation rules. Run normal debug checks without `-Pr8Validation`.
 
 ## Contributing
 

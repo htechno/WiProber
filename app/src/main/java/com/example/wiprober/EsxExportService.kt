@@ -144,7 +144,7 @@ class EsxExportService(
     private fun hasSourceOverlayChanges(snapshot: ProjectExportSnapshot): Boolean =
         snapshot.floors.any { floor ->
             !floor.importedFromSource ||
-                !sameScale(floor.sourceMetersPerUnit, floor.survey.metersPerUnit) ||
+                !sameScale(floor.sourceMetersPerUnit, FloorScalePolicy.forExport(floor.survey.metersPerUnit)) ||
                 floor.survey.scanPoints.any { !it.importedFromEsx } ||
                 floor.survey.continuousScanSessions.any { !it.importedFromEsx } ||
                 floor.survey.notes.any { !it.importedFromEsx }

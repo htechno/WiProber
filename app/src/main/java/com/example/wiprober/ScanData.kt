@@ -3,6 +3,7 @@ package com.example.wiprober
 enum class LastAction { SCAN, NOTE, SCAN_SESSION }
 
 // Этот класс будет представлять одну точку сканирования на карте
+@JsonModel
 data class ScanPoint(
     val timestamp: Long, // Время сканирования, чтобы отличать одно от другого
     val x: Float,        // Координата X на карте
@@ -12,6 +13,7 @@ data class ScanPoint(
 )
 
 // Этот класс описывает информацию об одной Wi-Fi сети
+@JsonModel
 data class WifiNetworkInfo(
     val ssid: String,
     val bssid: String,
@@ -40,6 +42,7 @@ data class AppNote(
 )
 
 // Новый класс для непрерывного сканирования
+@JsonModel
 data class ContinuousScanSession(
     val id: String,
     val startTime: Long,
@@ -49,12 +52,14 @@ data class ContinuousScanSession(
     val importedFromEsx: Boolean = false
 )
 
+@JsonModel
 data class RoutePointWrapper(
     val timestamp: Long, // Время нажатия относительно начала (startTime)
     val x: Float,
     val y: Float
 )
 
+@JsonModel
 data class ScanResultWrapper(
     val timestamp: Long, // Время получения результатов относительно начала
     val duration: Long,  // Сколько длился этот конкретный скан (разница между startScan и onResults)
